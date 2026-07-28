@@ -187,7 +187,10 @@
   width: min(430px, calc(100vw - 160px));
   max-height: min(650px, calc(100vh - 150px));
   padding: 22px;
-  overflow: auto;
+  /* La cola del globo es un ::before en right:-20px; cualquier overflow que no
+     sea visible la recorta y agrega scrollbar. El bloque de altura variable
+     (.safe-preview p) trae su propio scroll. */
+  overflow: visible;
   border: 4px solid #74e1b8;
   border-radius: 0;
   background: #111b18;
@@ -244,6 +247,7 @@
 }
 
 .genie-info .button {
+  box-sizing: border-box;
   width: 100%;
 }
 
