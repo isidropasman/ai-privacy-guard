@@ -13,6 +13,5 @@ describe("ProviderShowcase", () => {
     expect(available).toHaveLength(1);
     expect(available.item(0)?.textContent).toContain("ChatGPT");
     expect(within(list).getAllByText("Próximamente")).toHaveLength(2);
-    expect(screen.getByAltText(/rick anclado/i)).toBeInTheDocument();
   });
 });

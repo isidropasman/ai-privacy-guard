@@ -21,28 +21,6 @@ export function ProviderShowcase() {
         </p>
       </div>
 
-      <figure className="provider-showcase__frame">
-        <div className="provider-showcase__window-bar">
-          <span className="window-dots" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span>chatgpt.com</span>
-          <span className="local-badge">GUARDIÁN ACTIVO</span>
-        </div>
-        <img
-          src="/screenshots/redacta-chatgpt.webp"
-          alt="Ventana de ChatGPT con Rick anclado en la esquina inferior derecha."
-          width="1800"
-          height="983"
-          loading="lazy"
-        />
-        <figcaption>
-          Captura real de la extensión sobre ChatGPT.
-        </figcaption>
-      </figure>
-
       <ul className="provider-showcase__providers" aria-label="Proveedores">
         {providers.map((provider) => (
           <li key={provider.id} data-status={provider.status}>

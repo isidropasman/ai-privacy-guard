@@ -3,6 +3,13 @@ export const siteCopy = {
     eyebrow: "Simulación educativa · Análisis local",
     title: "Rick evita que los datos de tu empresa se filtren.",
     body: "Nos encargamos de que los datos sensibles no salgan de tu computadora y queden en los servidores de terceros, conectando una extensión.",
+    blocked: [
+      { value: "sk-live-4f9a…c2e1", label: "API key" },
+      { value: "postgres://admin:••••@prod", label: "Credenciales" },
+      { value: "DNI 30.412.887", label: "Dato personal" },
+      { value: "Proyección de gastos Q4 2026", label: "Plan financiero" },
+      { value: "Salarios del equipo de ingeniería", label: "Confidencial" },
+    ],
   },
   flow: {
     title: "Lo que cambia antes de enviar",
