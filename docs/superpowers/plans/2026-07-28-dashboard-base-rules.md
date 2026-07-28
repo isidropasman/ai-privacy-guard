@@ -21,10 +21,12 @@
 ### Task 1: Expose the registered detector list from `DetectorEngine`
 
 **Files:**
+
 - Modify: `src/detection/DetectorEngine.ts`
 - Test: `tests/unit/detection/DetectorEngine.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing new (existing `SensitiveDataDetector[]` constructor argument).
 - Produces: `DetectorEngine.prototype.detectors` — a public getter returning `readonly SensitiveDataDetector[]`, the same array passed to the constructor. Task 2 consumes this.
 
@@ -33,17 +35,17 @@
 Add this test to the existing `describe("DetectorEngine", ...)` block in `tests/unit/detection/DetectorEngine.test.ts` (append after the last test, before the closing `});`):
 
 ```ts
-  test("exposes the registered detectors through a public getter", () => {
-    const fixture: SensitiveDataDetector = {
-      id: "fixture",
-      label: "Fixture",
-      detect: () => [],
-    };
+test("exposes the registered detectors through a public getter", () => {
+  const fixture: SensitiveDataDetector = {
+    id: "fixture",
+    label: "Fixture",
+    detect: () => [],
+  };
 
-    const engine = new DetectorEngine([fixture]);
+  const engine = new DetectorEngine([fixture]);
 
-    expect(engine.detectors).toEqual([fixture]);
-  });
+  expect(engine.detectors).toEqual([fixture]);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -74,13 +76,13 @@ with these lines:
 Second, update the one place inside `detect()` that reads the renamed field. Replace this line:
 
 ```ts
-    const findings = this.detectors
+const findings = this.detectors;
 ```
 
 with:
 
 ```ts
-    const findings = this.registeredDetectors
+const findings = this.registeredDetectors;
 ```
 
 That's the entire diff: a renamed private field, a new public getter exposing it, and the one call site inside `detect()` updated to match. `hashInput()` and the rest of the file are untouched.
@@ -107,10 +109,12 @@ git commit -m "feat: expose registered detectors from DetectorEngine"
 ### Task 2: Add `describeBaseRules()` to `createDetectorEngine.ts`
 
 **Files:**
+
 - Modify: `src/detection/createDetectorEngine.ts`
 - Test: `tests/unit/detection/describeBaseRules.test.ts` (new)
 
 **Interfaces:**
+
 - Consumes: `DetectorEngine.prototype.detectors` from Task 1; the existing exported `createDetectorEngine(settings: PrivacyGuardSettings): DetectorEngine`; the existing `PrivacyGuardSettings` type (already imported in this file).
 - Produces: `export interface BaseRuleDescriptor { readonly id: string; readonly label: string; readonly description: string; readonly alwaysActive: boolean; readonly requiresSetting?: "warningsEnabled" | "financialDetectionEnabled"; }` and `export function describeBaseRules(): readonly BaseRuleDescriptor[]`. Task 3 consumes both.
 
@@ -262,7 +266,7 @@ const descriptionById: Record<string, string> = {
   email: "Detecta direcciones de email.",
   phone: "Detecta teléfonos mencionados en contexto de contacto.",
   "person-name":
-    "Detecta nombres de persona en frases como \"contactar a…\" o \"escribirle a…\".",
+    'Detecta nombres de persona en frases como "contactar a…" o "escribirle a…".',
   "argentine-identity":
     "Detecta DNI, CUIT/CUIL, CBU y alias bancario en formato argentino.",
   "financial-information":
@@ -366,10 +370,12 @@ git commit -m "feat: derive base rule descriptors from the real detector registr
 ### Task 3: Add the "Reglas base" section to the dashboard
 
 **Files:**
+
 - Create: `apps/dashboard/src/BaseRulesSection.tsx`
 - Modify: `apps/dashboard/src/App.tsx`
 
 **Interfaces:**
+
 - Consumes: `describeBaseRules` and `BaseRuleDescriptor` from `../../../src/detection/createDetectorEngine` (Task 2); `PageHeader` from `./RulesSection` (already exported, unchanged).
 - Produces: `export function BaseRulesSection(): JSX.Element`, consumed by `App.tsx`.
 
@@ -381,7 +387,10 @@ Create `apps/dashboard/src/BaseRulesSection.tsx`:
 import { describeBaseRules } from "../../../src/detection/createDetectorEngine";
 import { PageHeader } from "./RulesSection";
 
-const settingLabels: Record<"warningsEnabled" | "financialDetectionEnabled", string> = {
+const settingLabels: Record<
+  "warningsEnabled" | "financialDetectionEnabled",
+  string
+> = {
   warningsEnabled: "Advertir sobre datos personales",
   financialDetectionEnabled: "Detectar información financiera",
 };
@@ -557,9 +566,11 @@ git commit -m "feat: show real base detectors in a read-only dashboard section"
 ### Task 4: Verify the dev server and production build, fix cross-directory serving only if needed
 
 **Files:**
+
 - Modify (conditionally, only if Step 2 below fails): `apps/dashboard/vite.config.ts`
 
 **Interfaces:**
+
 - Consumes: nothing new.
 - Produces: nothing new (verification + conditional config task).
 
@@ -601,6 +612,7 @@ Stop and restart `pnpm dev`, reload the browser, and repeat the check from Step 
 - [ ] **Step 4: Manually verify the 3 summary counts and one conditional row**
 
 In the running dev server, on the "Reglas base" table, confirm:
+
 - The "Total" summary tile reads 11.
 - The "Siempre activas" tile reads 6.
 - The "Condicionadas" tile reads 5.

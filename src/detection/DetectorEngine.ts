@@ -8,7 +8,9 @@ export class DetectorEngine {
   private cachedKey: string | undefined;
   private cachedFindings: readonly DetectionFinding[] = [];
 
-  constructor(private readonly registeredDetectors: readonly SensitiveDataDetector[]) {}
+  constructor(
+    private readonly registeredDetectors: readonly SensitiveDataDetector[],
+  ) {}
 
   get detectors(): readonly SensitiveDataDetector[] {
     return this.registeredDetectors;

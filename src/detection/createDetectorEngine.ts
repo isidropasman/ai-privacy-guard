@@ -61,7 +61,7 @@ export interface BaseRuleDescriptor {
 
 const descriptionById: Record<string, string> = {
   "api-key":
-    "Detecta credenciales y API keys de proveedores conocidos (OpenAI, AWS, GitHub, Slack, Stripe, Google, Twilio) y variables tipo API_KEY=, TOKEN= o PASSWORD=.",
+    "Detecta credenciales y API keys de proveedores conocidos (OpenAI, Anthropic, AWS, GitHub, Slack, Stripe, Google, Twilio), tokens Bearer y variables tipo API_KEY=, TOKEN= o PASSWORD=.",
   "private-key":
     "Detecta bloques de clave privada en formato PEM (RSA u OpenSSH).",
   jwt: "Detecta tokens con estructura JWT; la severidad sube a crítica si aparece junto a lenguaje de autorización.",
@@ -74,7 +74,7 @@ const descriptionById: Record<string, string> = {
   email: "Detecta direcciones de email.",
   phone: "Detecta teléfonos mencionados en contexto de contacto.",
   "person-name":
-    "Detecta nombres de persona en frases como \"contactar a…\" o \"escribirle a…\".",
+    'Detecta nombres de persona en frases como "contactar a…" o "escribirle a…".',
   "argentine-identity":
     "Detecta DNI, CUIT/CUIL, CBU y alias bancario en formato argentino.",
   "financial-information":

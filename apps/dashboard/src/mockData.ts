@@ -1,0 +1,77 @@
+import type { CustomRule, InterceptionEvent } from "./types";
+
+export const initialRules: readonly CustomRule[] = [
+  {
+    id: "rule-confidential-projects",
+    name: "Proyectos confidenciales",
+    keywords: ["Proyecto Boreal", "Boreal-2026"],
+    severity: "high",
+    action: "block",
+    enabled: true,
+    createdAt: "2026-07-25T14:20:00.000Z",
+    updatedAt: "2026-07-28T11:45:00.000Z",
+  },
+  {
+    id: "rule-internal-pricing",
+    name: "Pricing interno",
+    keywords: ["margen interno", "precio negociado", "discount floor"],
+    severity: "medium",
+    action: "warn",
+    enabled: true,
+    createdAt: "2026-07-26T09:15:00.000Z",
+    updatedAt: "2026-07-26T09:15:00.000Z",
+  },
+  {
+    id: "rule-unannounced-products",
+    name: "Productos no anunciados",
+    keywords: ["Nebula X", "launch confidential"],
+    severity: "critical",
+    action: "replace",
+    enabled: false,
+    createdAt: "2026-07-27T16:30:00.000Z",
+    updatedAt: "2026-07-28T12:10:00.000Z",
+  },
+];
+
+export const mockEvents: readonly InterceptionEvent[] = [
+  {
+    id: "event-001",
+    occurredAt: "2026-07-28T16:42:00.000Z",
+    user: "valentina@empresa.com",
+    provider: "ChatGPT",
+    dataType: "Proyecto interno",
+    ruleName: "Proyectos confidenciales",
+    severity: "high",
+    action: "block",
+  },
+  {
+    id: "event-002",
+    occurredAt: "2026-07-28T15:18:00.000Z",
+    user: "martin@empresa.com",
+    provider: "Claude",
+    dataType: "Información financiera",
+    ruleName: "Pricing interno",
+    severity: "medium",
+    action: "warn",
+  },
+  {
+    id: "event-003",
+    occurredAt: "2026-07-28T13:04:00.000Z",
+    user: "sofia@empresa.com",
+    provider: "Gemini",
+    dataType: "Producto no anunciado",
+    ruleName: "Productos no anunciados",
+    severity: "critical",
+    action: "replace",
+  },
+  {
+    id: "event-004",
+    occurredAt: "2026-07-27T21:37:00.000Z",
+    user: "martin@empresa.com",
+    provider: "ChatGPT",
+    dataType: "Proyecto interno",
+    ruleName: "Proyectos confidenciales",
+    severity: "high",
+    action: "block",
+  },
+];

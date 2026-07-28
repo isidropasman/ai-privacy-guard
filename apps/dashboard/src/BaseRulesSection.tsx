@@ -1,7 +1,10 @@
 import { describeBaseRules } from "../../../src/detection/createDetectorEngine";
 import { PageHeader } from "./RulesSection";
 
-const settingLabels: Record<"warningsEnabled" | "financialDetectionEnabled", string> = {
+const settingLabels: Record<
+  "warningsEnabled" | "financialDetectionEnabled",
+  string
+> = {
   warningsEnabled: "Advertir sobre datos personales",
   financialDetectionEnabled: "Detectar información financiera",
 };

@@ -86,18 +86,20 @@ export function describeBaseRules(): readonly BaseRuleDescriptor[];
   `describeBaseRules` desde `../../../src/detection/createDetectorEngine` y
   renderiza una tabla de solo lectura reusando `PageHeader` y las clases de
   tabla ya existentes (`panel table-panel`, etc.).
-  Columnas: Detector (label + id), Estado (Siempre activo / Depende de
-  "Advertir sobre datos personales" / Depende de "Detectar información
-  financiera"), Descripción.
+  Columnas: Detector (label + id), Descripción, Estado (Siempre activo /
+  Depende de "Advertir sobre datos personales" / Depende de "Detectar
+  información financiera").
 - `apps/dashboard/src/App.tsx`: nuevo ítem de navegación "Reglas base",
   primero en la lista (antes de "Reglas personalizadas"); nuevo tipo de
   `Section` y rama de render.
-- `apps/dashboard/vite.config.ts`: se agrega `server.fs.allow` apuntando a
-  la raíz del repo (`import { searchForWorkspaceRoot } from "vite"`), porque
-  Vite por defecto no sirve en dev archivos fuera de la carpeta del
-  proyecto (`apps/dashboard`). Sin este cambio, `pnpm dev` fallaría al
-  importar `../../../src/detection/...`. El build de producción
-  (`vite build`, vía Rollup) no tiene esta restricción.
+- `apps/dashboard/vite.config.ts`: se esperaba tener que agregar
+  `server.fs.allow` apuntando a la raíz del repo (`import {
+searchForWorkspaceRoot } from "vite"`), porque Vite por defecto no sirve
+  en dev archivos fuera de la carpeta del proyecto (`apps/dashboard`). En
+  la práctica esto resultó innecesario: Vite detecta automáticamente la
+  raíz del workspace de pnpm a partir del `pnpm-lock.yaml` de la raíz del
+  repo, así que `pnpm dev` funciona sin tocar la configuración.
+  `vite.config.ts` queda sin modificar.
 - `apps/dashboard/src/styles.css`: se reutilizan clases existentes; solo se
   agrega alguna regla puntual si hace falta (por ejemplo, para el texto de
   "Depende de…"), sin reestructurar el archivo.
@@ -119,11 +121,11 @@ Pasos de verificación antes de dar por cerrada la etapa:
 2. Tests unitarios existentes de `detection/` — deben seguir pasando sin
    modificaciones.
 3. Test unitario nuevo para `describeBaseRules()` (agrupa correctamente los
-   12 detectores conocidos en siempre-activo / condicionado por
+   11 detectores conocidos en siempre-activo / condicionado por
    `warningsEnabled` / condicionado por `financialDetectionEnabled`).
 4. `apps/dashboard`: `pnpm typecheck`, `pnpm build`, y `pnpm dev` con
    verificación manual en el navegador de que la sección "Reglas base"
-   muestra las 12 reglas con el estado correcto.
+   muestra las 11 reglas con el estado correcto.
 
 ## Fuera de alcance (etapas futuras, no se implementan ahora)
 

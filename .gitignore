@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 .output
+dist
 playwright-report
 test-results
 stats.html
