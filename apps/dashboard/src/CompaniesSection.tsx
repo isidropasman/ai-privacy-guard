@@ -74,7 +74,7 @@ export function CompaniesSection({
 
       <section className="panel table-panel">
         <div className="table-scroll">
-          <table>
+          <table className="table--sticky-action">
             <thead>
               <tr>
                 <th>Empresa</th>

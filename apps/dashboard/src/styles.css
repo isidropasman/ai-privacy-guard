@@ -238,6 +238,19 @@ button {
   overflow-x: auto;
 }
 
+/**
+ * La tabla de empresas tiene más columnas de las que entran, así que la acción
+ * principal quedaría fuera de vista. Se ancla a la derecha para que "Ingresar"
+ * sea alcanzable sin scrollear.
+ */
+.table--sticky-action th:last-child,
+.table--sticky-action td:last-child {
+  position: sticky;
+  right: 0;
+  background: #141d1a;
+  box-shadow: -12px 0 16px -12px rgb(0 0 0 / 55%);
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
