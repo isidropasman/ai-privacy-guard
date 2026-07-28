@@ -4,8 +4,7 @@ export type IncidentUseCaseId =
   | "contract"
   | "code"
   | "commercial-proposal"
-  | "customer-data"
-  | "uploaded";
+  | "customer-data";
 
 export type IncidentFindingSeverity = "medium" | "critical";
 

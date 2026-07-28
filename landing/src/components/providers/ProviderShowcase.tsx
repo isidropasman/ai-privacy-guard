@@ -1,4 +1,4 @@
-import { providers, providerStatusLabel } from "../../data/providers";
+import { providers } from "../../data/providers";
 
 export function ProviderShowcase() {
   return (
@@ -23,7 +23,7 @@ export function ProviderShowcase() {
 
       <ul className="provider-showcase__providers" aria-label="Proveedores">
         {providers.map((provider) => (
-          <li key={provider.id} data-status={provider.status}>
+          <li key={provider.id}>
             <img
               className={`provider-logo provider-logo--${provider.id}`}
               src={provider.logo}
@@ -36,9 +36,6 @@ export function ProviderShowcase() {
               <strong>{provider.name}</strong>
               <small>{provider.detail}</small>
             </div>
-            <span className={`provider-status provider-status--${provider.status}`}>
-              {providerStatusLabel[provider.status]}
-            </span>
           </li>
         ))}
       </ul>
