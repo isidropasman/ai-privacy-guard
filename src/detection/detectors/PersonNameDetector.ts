@@ -5,8 +5,19 @@ import type {
 } from "../types";
 import { createFinding } from "../finding";
 
-const personNamePattern =
-  /\b(?:escribirle|contactar|contact[áa]|enviarle un mensaje)\s+a\s+([A-ZÁÉÍÓÚÑ][\p{L}'’-]+(?:\s+[A-ZÁÉÍÓÚÑ][\p{L}'’-]+){1,2})\b/giu;
+// Case-insensitive on purpose: people type names in lowercase. Capitalization
+// can't carry the signal, so the noun-phrase guards below carry it instead.
+const verb = String.raw`(?:escrib|contact|envi|mand)(?:ir|ar|[áa]|[íi])?(?:le|les|lo|la|los|las)?`;
+const object = String.raw`(?:\s+(?:un|una|el|la)\s+\p{L}+)?`;
+const notAPerson =
+  "la|el|los|las|un|una|unos|unas|mi|tu|su|sus|nuestro|nuestra|este|esta|estos|estas|ese|esa|esos|esas|todos|todas|alguien|nadie|quien|ellos|ellas";
+const connector = `${notAPerson}|de|del|con|para|por|que|y|o|en|sobre|desde|hasta`;
+const word = String.raw`\p{L}[\p{L}'’-]+`;
+
+const personNamePattern = new RegExp(
+  String.raw`\b${verb}${object}\s+a\s+((?!(?:${notAPerson})\b)${word}(?:\s+(?!(?:${connector})\b)${word}){1,2})`,
+  "giu",
+);
 
 export class PersonNameDetector implements SensitiveDataDetector {
   readonly id = "person-name";
