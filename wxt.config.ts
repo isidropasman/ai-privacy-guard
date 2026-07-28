@@ -8,6 +8,12 @@ export default defineConfig({
     version: "0.1.0",
     permissions: ["storage"],
     host_permissions: ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+    web_accessible_resources: [
+      {
+        resources: ["mascot/*.webp"],
+        matches: ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      },
+    ],
     action: {
       default_title: "AI Privacy Guard",
     },

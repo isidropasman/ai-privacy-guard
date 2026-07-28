@@ -54,7 +54,7 @@ describe("PrivacyReviewService", () => {
       "Explicame de manera sencilla qué es Kubernetes.",
     );
 
-    expect(result).toEqual({ kind: "allow" });
+    expect(result).toEqual({ kind: "allow", outcome: "clean" });
     expect(harness.decide).not.toHaveBeenCalled();
     expect((await harness.repository.get()).counters.allowedCount).toBe(1);
   });
@@ -68,6 +68,7 @@ describe("PrivacyReviewService", () => {
 
     expect(result).toEqual({
       kind: "allow",
+      outcome: "redacted",
       replacementText:
         "Ayudame a escribirle a [PERSON_NAME]. Su email es [EMAIL_CONTACT].",
     });
@@ -82,7 +83,7 @@ describe("PrivacyReviewService", () => {
       "OPENAI_API_KEY=sk-proj-example-for-testing",
     );
 
-    expect(result).toEqual({ kind: "interrupt" });
+    expect(result).toEqual({ kind: "interrupt", outcome: "blocked" });
     expect(harness.decide).toHaveBeenCalledWith(
       expect.objectContaining({
         decision: "BLOCK",
@@ -100,7 +101,7 @@ describe("PrivacyReviewService", () => {
       "OPENAI_API_KEY=sk-proj-example-for-testing",
     );
 
-    expect(result).toEqual({ kind: "interrupt" });
+    expect(result).toEqual({ kind: "interrupt", outcome: "blocked" });
     expect(harness.copy).toHaveBeenCalledWith(
       "OPENAI_API_KEY=[API_KEY_REMOVED]",
     );

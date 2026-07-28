@@ -55,7 +55,7 @@ export class PrivacyReviewService {
 
     if (policy.decision === "ALLOW") {
       await this.settingsRepository.incrementCounter("allowedCount");
-      return { kind: "allow" };
+      return { kind: "allow", outcome: "clean" };
     }
 
     await this.settingsRepository.incrementCounter(
@@ -73,19 +73,26 @@ export class PrivacyReviewService {
 
     if (userDecision === "redact") {
       await this.settingsRepository.incrementCounter("redactedCount");
-      return { kind: "allow", replacementText: redaction.text };
+      return {
+        kind: "allow",
+        outcome: "redacted",
+        replacementText: redaction.text,
+      };
     }
 
     if (userDecision === "send-original") {
       return policy.decision === "WARN" || !settings.strictSecrets
-        ? { kind: "allow" }
-        : { kind: "interrupt" };
+        ? { kind: "allow", outcome: "clean" }
+        : { kind: "interrupt", outcome: "blocked" };
     }
 
     if (userDecision === "copy-safe") {
       await this.copy(redaction.text);
     }
 
-    return { kind: "interrupt" };
+    return {
+      kind: "interrupt",
+      outcome: policy.decision === "BLOCK" ? "blocked" : "cancelled",
+    };
   }
 }

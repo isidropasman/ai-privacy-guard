@@ -2,8 +2,16 @@ import type { ProviderAdapter } from "../adapters/types";
 import { EventGuard } from "./EventGuard";
 
 export type SubmissionReview =
-  | { readonly kind: "allow"; readonly replacementText?: string }
-  | { readonly kind: "interrupt" }
+  | { readonly kind: "allow"; readonly outcome: "clean" }
+  | {
+      readonly kind: "allow";
+      readonly outcome: "redacted";
+      readonly replacementText: string;
+    }
+  | {
+      readonly kind: "interrupt";
+      readonly outcome: "cancelled" | "blocked";
+    }
   | { readonly kind: "error"; readonly originalMayBeSent: boolean };
 
 type ReviewErrorResolution = "allow" | "interrupt";
@@ -12,6 +20,8 @@ interface SubmissionInterceptorOptions {
   readonly root: Document;
   readonly adapter: ProviderAdapter;
   readonly review: (text: string) => Promise<SubmissionReview>;
+  readonly onReviewStarted: () => void;
+  readonly onReviewCompleted: (review: SubmissionReview) => void;
   readonly onInterrupted: () => void;
   readonly onReviewError: (
     originalMayBeSent: boolean,
@@ -31,21 +41,23 @@ export class SubmissionInterceptor {
       return this.cleanup;
     }
 
-    const eventTypes = ["click", "keydown", "submit"] as const;
     const listener = (event: Event) => this.handleEvent(event);
+    const keyboardTarget = this.options.root.defaultView ?? this.options.root;
 
-    for (const eventType of eventTypes) {
+    for (const eventType of ["click", "submit"] as const) {
       this.options.root.addEventListener(eventType, listener, true);
     }
+    keyboardTarget.addEventListener("keydown", listener, true);
 
     const cleanup = () => {
       if (this.cleanup !== cleanup) {
         return;
       }
 
-      for (const eventType of eventTypes) {
+      for (const eventType of ["click", "submit"] as const) {
         this.options.root.removeEventListener(eventType, listener, true);
       }
+      keyboardTarget.removeEventListener("keydown", listener, true);
       this.cleanup = undefined;
     };
     this.cleanup = cleanup;
@@ -69,6 +81,7 @@ export class SubmissionInterceptor {
     }
 
     this.reviewInFlight = true;
+    this.options.onReviewStarted();
     void this.reviewAndContinue();
   }
 
@@ -77,6 +90,7 @@ export class SubmissionInterceptor {
 
     try {
       const review = await this.options.review(text);
+      this.options.onReviewCompleted(review);
       if (review.kind === "error") {
         const resolution = await this.options.onReviewError(
           review.originalMayBeSent,
@@ -96,7 +110,7 @@ export class SubmissionInterceptor {
         return;
       }
 
-      if (review.replacementText !== undefined) {
+      if (review.outcome === "redacted") {
         this.options.adapter.setComposerText(review.replacementText);
         // ProseMirror commits native DOM edits after the current event cycle.
         await new Promise<void>((resolve) => {
