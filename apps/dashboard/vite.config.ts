@@ -7,6 +7,9 @@ const apiTarget =
 
 export default defineConfig({
   plugins: [react()],
+  // La landing ocupa la raíz del dominio, así que el dashboard cuelga de
+  // /dashboard y sus assets tienen que resolverse contra ese prefijo.
+  base: "/dashboard/",
   server: {
     port: 5173,
     // El dashboard y el API comparten origen en producción. En desarrollo el

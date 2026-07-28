@@ -3,3 +3,4 @@ allowBuilds:
   spawn-sync: true
 packages:
   - landing
+  - apps/dashboard

@@ -10,7 +10,7 @@ import {
   Summary,
   SummaryStrip,
 } from "./ui";
-import { useAsync } from "./useAsync";
+import { livePollMs, useAsync } from "./useAsync";
 
 const severityOptions: readonly RuleSeverity[] = [
   "critical",
@@ -39,6 +39,7 @@ export function EventsSection({
         .companyEvents(company.id, { userId, severity })
         .catch(rethrow(onError)),
     [company.id, userId, severity, onError],
+    livePollMs,
   );
 
   const list = events.value ?? [];
