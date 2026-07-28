@@ -137,16 +137,18 @@ export function SecurityGenie({
           onClick={() => setInfoOpen((open) => !open)}
           data-mascot-trigger
         >
-          <span
-            className={`security-genie__sprite security-genie__sprite--${state.kind}`}
-            style={{ backgroundImage: `url("${asset}")` }}
-            role="img"
-            aria-label="Security Genie"
-            data-mascot-sprite
-          />
-          <span className="security-genie__particle" aria-hidden="true" />
-          <span className="security-genie__particle" aria-hidden="true" />
-          <span className="security-genie__particle" aria-hidden="true" />
+          <span className="security-genie__hover-layer">
+            <span
+              className={`security-genie__sprite security-genie__sprite--${state.kind}`}
+              style={{ backgroundImage: `url("${asset}")` }}
+              role="img"
+              aria-label="Security Genie"
+              data-mascot-sprite
+            />
+            <span className="security-genie__particle" aria-hidden="true" />
+            <span className="security-genie__particle" aria-hidden="true" />
+            <span className="security-genie__particle" aria-hidden="true" />
+          </span>
         </button>
       ) : (
         <div className="security-genie__decision-anchor">

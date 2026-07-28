@@ -56,6 +56,12 @@
   outline-offset: 4px;
 }
 
+.security-genie__hover-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .security-genie__particle {
   position: absolute;
   width: 6px;
@@ -517,6 +523,11 @@
     animation: security-genie-hover 1.8s ease-in-out infinite;
   }
 
+  .security-genie__trigger:hover .security-genie__hover-layer,
+  .security-genie__trigger:focus-visible .security-genie__hover-layer {
+    animation: security-genie-float 1.8s ease-in-out infinite;
+  }
+
   .security-genie__trigger:hover .security-genie__sprite--idle,
   .security-genie__trigger:focus-visible .security-genie__sprite--idle {
     animation: security-genie-sprite 2.6s steps(4, end) 1 forwards;
@@ -560,6 +571,17 @@
   }
 
   @keyframes security-genie-hover {
+    0%,
+    100% {
+      filter: drop-shadow(0 0 0 rgb(0 219 255 / 0%));
+    }
+
+    50% {
+      filter: drop-shadow(0 0 7px rgb(0 219 255 / 40%));
+    }
+  }
+
+  @keyframes security-genie-float {
     0%,
     100% {
       transform: translateY(0);
