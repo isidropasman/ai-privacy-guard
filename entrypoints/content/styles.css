@@ -101,28 +101,28 @@
 
 .security-genie__sprite--scanning {
   background-position-y: 20%;
-  animation: security-genie-sprite 2.8s steps(4, end) infinite;
+  animation: security-genie-sprite 2.8s steps(4, jump-none) infinite;
 }
 
 .security-genie__sprite--allow {
   background-position-y: 40%;
-  animation: security-genie-sprite 2.6s steps(4, end) 1 forwards;
+  animation: security-genie-sprite 2.6s steps(4, jump-none) 1 forwards;
 }
 
 .security-genie__sprite--redacted {
   background-position-y: 60%;
-  animation: security-genie-sprite 2.6s steps(4, end) 1 forwards;
+  animation: security-genie-sprite 2.6s steps(4, jump-none) 1 forwards;
 }
 
 .security-genie__sprite--verify {
   background-position-y: 80%;
-  animation: security-genie-sprite 3.2s steps(4, end) 1 forwards;
+  animation: security-genie-sprite 3.2s steps(4, jump-none) 1 forwards;
 }
 
 .security-genie__sprite--block,
 .security-genie__sprite--error {
   background-position-y: 100%;
-  animation: security-genie-sprite 2.8s steps(4, end) 1 forwards;
+  animation: security-genie-sprite 2.8s steps(4, jump-none) 1 forwards;
 }
 
 .genie-status,
@@ -530,7 +530,7 @@
 
   .security-genie__trigger:hover .security-genie__sprite--idle,
   .security-genie__trigger:focus-visible .security-genie__sprite--idle {
-    animation: security-genie-sprite 2.6s steps(4, end) 1 forwards;
+    animation: security-genie-sprite 2.6s steps(4, jump-none) 1 forwards;
     filter:
       drop-shadow(0 0 8px rgb(0 219 255 / 78%))
       drop-shadow(0 12px 25px rgb(0 219 255 / 35%));
@@ -565,8 +565,10 @@
       background-position-x: 0%;
     }
 
+    /* 4 columnas: la última vive en 100%. Con jump-none los pasos son
+       0 / 33.3 / 66.7 / 100, así que `forwards` congela en un frame real. */
     to {
-      background-position-x: 133.3333%;
+      background-position-x: 100%;
     }
   }
 
