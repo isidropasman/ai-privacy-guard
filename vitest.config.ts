@@ -2,6 +2,11 @@ import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    exclude: [...configDefaults.exclude, ".worktrees/**", "tests/e2e/**"],
+    exclude: [
+      ...configDefaults.exclude,
+      ".worktrees/**",
+      "landing/**",
+      "tests/e2e/**",
+    ],
   },
 });
