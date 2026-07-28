@@ -33,22 +33,12 @@ body {
 }
 
 .mark {
-  display: grid;
   width: 42px;
   height: 42px;
-  place-items: center;
   border-radius: 13px;
-  color: #fff;
-  background: #176b52;
-}
-
-.mark svg {
-  width: 25px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
+  background:
+    #176b52 url("/mascot/security-genie.webp") 0% 0% / 400% 600% no-repeat;
+  image-rendering: pixelated;
 }
 
 .eyebrow,
