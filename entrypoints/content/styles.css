@@ -34,16 +34,12 @@
   pointer-events: none;
 }
 
-.security-genie__trigger,
-.security-genie__decision-anchor {
+.security-genie__trigger {
   position: absolute;
   right: 0;
   bottom: 0;
   width: 112px;
   height: 112px;
-}
-
-.security-genie__trigger {
   padding: 0;
   border: 0;
   background: transparent;

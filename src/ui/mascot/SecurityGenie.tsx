@@ -128,30 +128,22 @@ export function SecurityGenie({
         aria-hidden="true"
         data-mascot-preload
       />
-      {decision === null ? (
-        <button
-          className="security-genie__trigger"
-          type="button"
-          aria-label="¿Qué hace Security Genie?"
-          aria-expanded={infoOpen}
-          onClick={() => setInfoOpen((open) => !open)}
-          data-mascot-trigger
-        >
-          <span className="security-genie__hover-layer">
-            <span
-              className={`security-genie__sprite security-genie__sprite--${state.kind}`}
-              style={{ backgroundImage: `url("${asset}")` }}
-              role="img"
-              aria-label="Security Genie"
-              data-mascot-sprite
-            />
-            <span className="security-genie__particle" aria-hidden="true" />
-            <span className="security-genie__particle" aria-hidden="true" />
-            <span className="security-genie__particle" aria-hidden="true" />
-          </span>
-        </button>
-      ) : (
-        <div className="security-genie__decision-anchor">
+      <button
+        className="security-genie__trigger"
+        type="button"
+        {...(decision === null
+          ? {
+              "aria-label": "¿Qué hace Security Genie?",
+              "aria-expanded": infoOpen,
+            }
+          : { "aria-hidden": true, tabIndex: -1 })}
+        onClick={() => {
+          if (decision !== null) return;
+          setInfoOpen((open) => !open);
+        }}
+        data-mascot-trigger
+      >
+        <span className="security-genie__hover-layer">
           <span
             className={`security-genie__sprite security-genie__sprite--${state.kind}`}
             style={{ backgroundImage: `url("${asset}")` }}
@@ -159,8 +151,11 @@ export function SecurityGenie({
             aria-label="Security Genie"
             data-mascot-sprite
           />
-        </div>
-      )}
+          <span className="security-genie__particle" aria-hidden="true" />
+          <span className="security-genie__particle" aria-hidden="true" />
+          <span className="security-genie__particle" aria-hidden="true" />
+        </span>
+      </button>
     </section>
   );
 }
