@@ -1,0 +1,260 @@
+<style>
+  .concept {
+    display: grid;
+    gap: 18px;
+  }
+
+  .chat-shell {
+    position: relative;
+    min-height: 560px;
+    overflow: hidden;
+    border: 1px solid #343434;
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 50% 100%, #252a28 0, transparent 42%),
+      #111;
+    box-shadow: 0 24px 80px rgb(0 0 0 / 35%);
+  }
+
+  .chat-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #2e2e2e;
+    color: #b7b7b7;
+  }
+
+  .conversation {
+    display: grid;
+    gap: 20px;
+    padding: 68px 80px 170px;
+  }
+
+  .message {
+    max-width: 68%;
+    padding: 14px 18px;
+    border-radius: 20px;
+    color: #ececec;
+    background: #2f2f2f;
+  }
+
+  .message.user {
+    justify-self: end;
+  }
+
+  .message.ai {
+    background: transparent;
+  }
+
+  .composer {
+    position: absolute;
+    right: 50%;
+    bottom: 28px;
+    width: min(640px, calc(100% - 160px));
+    min-height: 74px;
+    padding: 18px 72px 18px 22px;
+    transform: translateX(50%);
+    border: 1px solid #454545;
+    border-radius: 28px;
+    color: #a9a9a9;
+    background: #262626;
+  }
+
+  .send {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #121212;
+    background: #f4f4f4;
+    font-size: 22px;
+  }
+
+  .guardian {
+    position: absolute;
+    right: 20px;
+    bottom: 16px;
+    width: 118px;
+    height: 118px;
+    z-index: 3;
+  }
+
+  .guardian img {
+    width: 100%;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 10px 24px rgb(0 229 255 / 20%));
+  }
+
+  .speech {
+    position: absolute;
+    right: 92px;
+    bottom: 122px;
+    z-index: 2;
+    width: min(390px, calc(100% - 150px));
+    padding: 20px;
+    border: 1px solid #41675d;
+    border-radius: 20px 20px 4px 20px;
+    color: #eef8f4;
+    background: #17231f;
+    box-shadow: 0 24px 70px rgb(0 0 0 / 52%);
+  }
+
+  .speech::after {
+    content: "";
+    position: absolute;
+    right: -16px;
+    bottom: 12px;
+    border-width: 12px 0 0 18px;
+    border-style: solid;
+    border-color: transparent transparent transparent #41675d;
+  }
+
+  .speech .eyebrow {
+    color: #80e6be;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+
+  .speech h3 {
+    margin: 6px 0;
+    color: #fff;
+    font-size: 20px;
+  }
+
+  .speech p {
+    margin: 0 0 14px;
+    color: #b7c8c1;
+    line-height: 1.45;
+  }
+
+  .finding {
+    padding: 10px 12px;
+    border-radius: 12px;
+    color: #d8e5e0;
+    background: #22332d;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .primary,
+  .secondary {
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-weight: 750;
+  }
+
+  .primary {
+    color: #10271f;
+    background: #81e5bd;
+  }
+
+  .secondary {
+    color: #d7e4df;
+    background: #30463e;
+  }
+
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .step {
+    padding: 14px;
+    border: 1px solid #303a37;
+    border-radius: 14px;
+    background: #181d1b;
+  }
+
+  .step strong {
+    display: block;
+    color: #8be7c2;
+  }
+
+  .step span {
+    color: #9da9a4;
+    font-size: 12px;
+  }
+</style>
+
+<div class="concept">
+  <div>
+    <h2>Security Genie como guardián de ChatGPT</h2>
+    <p class="subtitle">
+      Propuesta recomendada: la mascota vive junto al composer y toda
+      verificación aparece como una conversación iniciada por ella.
+    </p>
+  </div>
+
+  <div class="chat-shell">
+    <div class="chat-header">
+      <span>ChatGPT</span>
+      <span>AI Privacy Guard activo</span>
+    </div>
+    <div class="conversation">
+      <div class="message user">
+        Ayudame a escribirle a Juan Pérez. Su email es
+        juan.perez@example.com.
+      </div>
+      <div class="message ai">Estoy listo para ayudarte.</div>
+    </div>
+    <div class="composer">
+      Preguntale a ChatGPT
+      <div class="send">↑</div>
+    </div>
+
+    <div class="speech">
+      <div class="eyebrow">Revisión rápida</div>
+      <h3>Encontré datos personales</h3>
+      <p>
+        Antes de enviarlo, puedo ocultar el nombre y el email por vos.
+      </p>
+      <div class="finding">
+        [PERSON_NAME] · [EMAIL_CONTACT]
+      </div>
+      <div class="actions">
+        <button class="primary">Anonimizar y enviar</button>
+        <button class="secondary">Revisar</button>
+      </div>
+    </div>
+    <div class="guardian">
+      <img
+        src="/files/security-genie-shield.webp"
+        alt="Security Genie protegiendo el envío"
+      />
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="step">
+      <strong>1. Idle</strong>
+      <span>Está presente pero no invade.</span>
+    </div>
+    <div class="step">
+      <strong>2. Escanea</strong>
+      <span>Reacciona apenas intentás enviar.</span>
+    </div>
+    <div class="step">
+      <strong>3. Te habla</strong>
+      <span>La burbuja nace visualmente desde él.</span>
+    </div>
+    <div class="step">
+      <strong>4. Resuelve</strong>
+      <span>Confirma, anonimiza o bloquea.</span>
+    </div>
+  </div>
+</div>

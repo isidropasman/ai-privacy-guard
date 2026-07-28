@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Journey visual test</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+      import { DataJourneySimulator } from "/src/components/data-journey/DataJourneySimulator.tsx";
+      import "/src/styles.css";
+
+      const root = document.getElementById("root");
+      if (!(root instanceof HTMLElement)) {
+        throw new Error("Missing visual test root");
+      }
+
+      createRoot(root).render(React.createElement(DataJourneySimulator));
+    </script>
+  </body>
+</html>

@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 .output
+dist
+*.tsbuildinfo
 playwright-report
 test-results
 stats.html
