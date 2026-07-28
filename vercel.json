@@ -1,0 +1,4 @@
+{
+  "buildCommand": "pnpm --filter @redacta/landing build",
+  "outputDirectory": "landing/dist"
+}

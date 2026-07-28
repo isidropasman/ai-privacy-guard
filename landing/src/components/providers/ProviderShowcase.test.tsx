@@ -3,15 +3,15 @@ import { describe, expect, it } from "vitest";
 import { ProviderShowcase } from "./ProviderShowcase";
 
 describe("ProviderShowcase", () => {
-  it("marca como disponible sólo al proveedor que la extensión soporta hoy", () => {
+  it("lista los tres proveedores sin distinguir disponibilidad", () => {
     render(<ProviderShowcase />);
 
     const list = screen.getByRole("list", { name: "Proveedores" });
-    const available = list.querySelectorAll('li[data-status="available"]');
 
     expect(within(list).getAllByRole("listitem")).toHaveLength(3);
-    expect(available).toHaveLength(1);
-    expect(available.item(0)?.textContent).toContain("ChatGPT");
-    expect(within(list).getAllByText("Próximamente")).toHaveLength(2);
+    expect(within(list).getByText("ChatGPT")).toBeTruthy();
+    expect(within(list).getByText("Claude")).toBeTruthy();
+    expect(within(list).getByText("Gemini")).toBeTruthy();
+    expect(list.textContent).not.toContain("Próximamente");
   });
 });

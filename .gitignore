@@ -30,3 +30,5 @@ web-ext.config.ts
 *.sln
 *.sw?
 .gstack/
+.vercel
+.env*

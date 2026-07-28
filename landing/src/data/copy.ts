@@ -7,8 +7,8 @@ export const siteCopy = {
       { value: "sk-live-4f9a…c2e1", label: "API key" },
       { value: "postgres://admin:••••@prod", label: "Credenciales" },
       { value: "DNI 30.412.887", label: "Dato personal" },
-      { value: "Proyección de gastos Q4 2026", label: "Plan financiero" },
-      { value: "Salarios del equipo de ingeniería", label: "Confidencial" },
+      { value: "Proyección de gastos Q4 2026", label: "Finanzas" },
+      { value: "Salarios del equipo", label: "Confidencial" },
     ],
   },
   flow: {

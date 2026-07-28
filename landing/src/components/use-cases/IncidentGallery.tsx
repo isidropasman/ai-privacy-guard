@@ -5,6 +5,7 @@ import {
   type IncidentStateId,
   type IncidentUseCase,
 } from "../../data/useCases";
+import { IncidentDemo } from "../incident-demo/IncidentDemo";
 import { IncidentScene } from "./IncidentScene";
 
 type FlowState =
@@ -278,6 +279,18 @@ export function IncidentGallery() {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="incident-gallery__file-demo">
+        <div className="incident-gallery__file-demo-intro">
+          <p className="eyebrow">Y CUANDO ES UN ARCHIVO ENTERO</p>
+          <h3>Un PDF de 38 páginas, revisado antes de salir.</h3>
+          <p>
+            La misma revisión sobre un documento completo: escaneo página por
+            página, hallazgos, reemplazos y recibo de lo que se protegió.
+          </p>
+        </div>
+        <IncidentDemo />
       </div>
     </section>
   );
