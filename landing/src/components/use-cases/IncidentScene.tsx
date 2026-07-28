@@ -16,6 +16,7 @@ const severityLabel: Readonly<Record<IncidentFinding["severity"], string>> = {
 
 export function IncidentScene({ incident, state }: IncidentSceneProps) {
   const activeState = incident.states[state];
+  const uploaded = incident.id === "uploaded";
   const findingLabelById = new Map(
     incident.findings.map((finding) => [finding.id, finding.label] as const),
   );
@@ -34,7 +35,9 @@ export function IncidentScene({ incident, state }: IncidentSceneProps) {
           <strong>{incident.fileName}</strong>
           <span>{incident.context}</span>
         </div>
-        <span className="incident-scene__local-badge">EJEMPLO LOCAL</span>
+        <span className="incident-scene__local-badge">
+          {uploaded ? "TU ARCHIVO" : "EJEMPLO LOCAL"}
+        </span>
       </header>
 
       <div className="incident-scene__stage">
@@ -108,14 +111,14 @@ export function IncidentScene({ incident, state }: IncidentSceneProps) {
           <span aria-hidden="true">✓</span>
           <p>
             <strong>Versión segura preparada.</strong>
-            Los valores del ejemplo fueron sustituidos antes de salir del
-            navegador.
+            {uploaded ? "Tus valores" : "Los valores del ejemplo"} fueron
+            sustituidos antes de salir del navegador.
           </p>
         </div>
       )}
 
       <footer className="incident-scene__footer">
-        <span>Escena ficticia</span>
+        <span>{uploaded ? "Leído en memoria" : "Escena ficticia"}</span>
         <span>Sin upload · sin llamadas externas</span>
       </footer>
     </article>

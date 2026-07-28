@@ -58,15 +58,17 @@ export function App() {
                 height="256"
                 aria-hidden="true"
               />
-              <p className="hero-blocked__title">Rick bloquea</p>
-              <ul className="hero-blocked" aria-label="Ejemplos de contenido que Rick bloquea">
-                {siteCopy.hero.blocked.map((item) => (
-                  <li key={item.value}>
-                    <span className="hero-blocked__value">{item.value}</span>
-                    <span className="hero-blocked__label">{item.label}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="hero-blocked-stack">
+                <p className="hero-blocked__title">Rick bloquea</p>
+                <ul className="hero-blocked" aria-label="Ejemplos de contenido que Rick bloquea">
+                  {siteCopy.hero.blocked.map((item) => (
+                    <li key={item.value}>
+                      <span className="hero-blocked__value">{item.value}</span>
+                      <span className="hero-blocked__label">{item.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </motion.div>
           </section>
           <IncidentGallery />

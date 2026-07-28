@@ -5,6 +5,7 @@ import {
   type IncidentStateId,
   type IncidentUseCase,
 } from "../../data/useCases";
+import { FileDropZone } from "./FileDropZone";
 import { IncidentScene } from "./IncidentScene";
 
 type FlowState =
@@ -53,9 +54,13 @@ function guardianMessage(flow: FlowState, incident: IncidentUseCase): string {
 export function IncidentGallery() {
   const [selectedCaseIndex, setSelectedCaseIndex] = useState(0);
   const [flow, setFlow] = useState<FlowState>("idle");
+  const [uploaded, setUploaded] = useState<IncidentUseCase | undefined>(
+    undefined,
+  );
   const timeoutRef = useRef<number | undefined>(undefined);
   const reduceMotion = useReducedMotion();
-  const selectedCase = useCases[selectedCaseIndex] ?? useCases[0];
+  const cases = uploaded === undefined ? useCases : [...useCases, uploaded];
+  const selectedCase = cases[selectedCaseIndex] ?? cases[0];
   const critical = selectedCase.findings.some(
     (finding) => finding.severity === "critical",
   );
@@ -101,11 +106,11 @@ export function IncidentGallery() {
     let nextIndex: number | undefined;
 
     if (event.key === "ArrowDown" || event.key === "ArrowRight") {
-      nextIndex = (currentIndex + 1) % useCases.length;
+      nextIndex = (currentIndex + 1) % cases.length;
     }
 
     if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
-      nextIndex = (currentIndex - 1 + useCases.length) % useCases.length;
+      nextIndex = (currentIndex - 1 + cases.length) % cases.length;
     }
 
     if (event.key === "Home") {
@@ -113,7 +118,7 @@ export function IncidentGallery() {
     }
 
     if (event.key === "End") {
-      nextIndex = useCases.length - 1;
+      nextIndex = cases.length - 1;
     }
 
     if (nextIndex === undefined) {
@@ -153,7 +158,7 @@ export function IncidentGallery() {
             aria-label="Casos de uso"
             aria-orientation="vertical"
           >
-            {useCases.map((useCase, index) => {
+            {cases.map((useCase, index) => {
               const isSelected = index === selectedCaseIndex;
 
               return (
@@ -179,11 +184,20 @@ export function IncidentGallery() {
             })}
           </div>
 
+          <FileDropZone
+            onLoaded={(incident) => {
+              window.clearTimeout(timeoutRef.current);
+              setUploaded(incident);
+              setSelectedCaseIndex(useCases.length);
+              setFlow("idle");
+            }}
+          />
+
           <div className="incident-gallery__scope">
             <span aria-hidden="true">◇</span>
             <p>
-              <strong>Simulación en este navegador</strong>
-              No procesa archivos ni envía contenido.
+              <strong>Todo corre en este navegador</strong>
+              El archivo se lee en memoria: no se sube ni sale de tu equipo.
             </p>
           </div>
         </aside>
