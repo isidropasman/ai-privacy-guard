@@ -1,9 +1,9 @@
 import { join } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createApp } from "../apps/api/src/app";
-import { loadConfig } from "../apps/api/src/config";
-import { createSqlClient, migrate } from "../apps/api/src/db/client";
-import { seed } from "../apps/api/src/db/seed";
+import { createApp } from "./app";
+import { loadConfig } from "./config";
+import { createSqlClient, migrate } from "./db/client";
+import { seed } from "./db/seed";
 
 // El bundle de la función se monta en el cwd del runtime, así que el build de
 // la extensión que empaqueta /admin/companies/:id/extension/download hay que

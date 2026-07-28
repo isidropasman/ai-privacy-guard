@@ -1,16 +1,28 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm --filter @redacta/landing build && pnpm --filter ai-privacy-guard-dashboard build && pnpm build && cp -r apps/dashboard/dist landing/dist/dashboard",
+  "buildCommand": "pnpm --filter @redacta/landing build && pnpm --filter ai-privacy-guard-dashboard build && pnpm build && cp -r apps/dashboard/dist landing/dist/dashboard && pnpm api:bundle",
   "outputDirectory": "landing/dist",
   "functions": {
-    "api/index.ts": {
-      "includeFiles": "{.output/chrome-mv3/**,apps/api/src/db/schema.sql}"
+    "api/index.js": {
+      "includeFiles": "{.output/chrome-mv3/**,api/schema.sql}"
     }
   },
   "rewrites": [
-    { "source": "/admin/(.*)", "destination": "/api" },
-    { "source": "/v1/(.*)", "destination": "/api" },
-    { "source": "/health", "destination": "/api" },
-    { "source": "/dashboard/(.*)", "destination": "/dashboard/index.html" }
+    {
+      "source": "/admin/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/v1/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/health",
+      "destination": "/api"
+    },
+    {
+      "source": "/dashboard/(.*)",
+      "destination": "/dashboard/index.html"
+    }
   ]
 }
