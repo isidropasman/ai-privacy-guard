@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
+/** Cadencia de refresco de las vistas que siguen telemetría entrante. */
+export const livePollMs = 5000;
+
 export interface AsyncState<Value> {
   readonly value: Value | undefined;
   readonly error: string | undefined;
@@ -15,6 +18,7 @@ export interface AsyncState<Value> {
 export function useAsync<Value>(
   load: () => Promise<Value>,
   deps: readonly unknown[],
+  pollMs?: number,
 ): AsyncState<Value> {
   const [value, setValue] = useState<Value>();
   const [error, setError] = useState<string>();
@@ -47,6 +51,16 @@ export function useAsync<Value>(
       active = false;
     };
   }, [...deps, nonce]);
+
+  // Refresco en vivo. El intervalo dispara el mismo `reload` que el botón, así
+  // que no hay un segundo camino de carga que mantener en sincronía.
+  useEffect(() => {
+    if (pollMs === undefined) return;
+    const timer = setInterval(reload, pollMs);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [pollMs, reload]);
 
   return { value, error, loading, reload };
 }

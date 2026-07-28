@@ -14,7 +14,7 @@ import {
   Summary,
   SummaryStrip,
 } from "./ui";
-import { useAsync } from "./useAsync";
+import { livePollMs, useAsync } from "./useAsync";
 
 export function CompanyOverviewSection({
   company,
@@ -28,6 +28,7 @@ export function CompanyOverviewSection({
   const events = useAsync(
     () => api.companyEvents(company.id).catch(rethrow(onError)),
     [company.id, onError],
+    livePollMs,
   );
 
   const list = events.value ?? [];

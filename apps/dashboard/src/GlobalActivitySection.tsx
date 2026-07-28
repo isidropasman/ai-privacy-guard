@@ -10,7 +10,7 @@ import {
   Summary,
   SummaryStrip,
 } from "./ui";
-import { useAsync } from "./useAsync";
+import { livePollMs, useAsync } from "./useAsync";
 
 const severityOptions: readonly RuleSeverity[] = [
   "critical",
@@ -35,6 +35,7 @@ export function GlobalActivitySection({
   const events = useAsync(
     () => api.events({ companyId, severity, source }).catch(rethrow(onError)),
     [companyId, severity, source, onError],
+    livePollMs,
   );
 
   const list = events.value ?? [];

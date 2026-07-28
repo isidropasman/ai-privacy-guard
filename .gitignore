@@ -34,3 +34,6 @@ web-ext.config.ts
 .vercel
 .env*
 .pglite/
+
+# bundle generado para la funcion de Vercel
+/api/

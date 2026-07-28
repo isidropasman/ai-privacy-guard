@@ -11,7 +11,7 @@ import {
   Summary,
   SummaryStrip,
 } from "./ui";
-import { useAsync } from "./useAsync";
+import { livePollMs, useAsync } from "./useAsync";
 
 export function ExtensionSection({
   company,
@@ -27,6 +27,7 @@ export function ExtensionSection({
   const installations = useAsync(
     () => api.installations(company.id).catch(rethrow(onError)),
     [company.id, onError],
+    livePollMs,
   );
   const rules = useAsync(
     () => api.rules(company.id).catch(rethrow(onError)),
