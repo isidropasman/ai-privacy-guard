@@ -158,7 +158,7 @@ test("el paquete de una empresa reporta un evento real sin filtrar el prompt", a
   await page.locator("#prompt-textarea").press("Enter");
 
   await expect(
-    page.getByRole("heading", { name: "Envío bloqueado" }),
+    page.getByRole("heading", { name: "Este mensaje no puede salir" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Eliminar y continuar" }).click();
   await expect(page.locator("body[data-submit-count]")).toHaveAttribute(

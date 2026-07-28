@@ -14,7 +14,7 @@ const credentialPatterns = [
   /\b(AIza[0-9A-Za-z_-]{20,})\b/g,
   /\b(SK[0-9a-fA-F]{32})\b/g,
   /\bBearer\s+([A-Za-z0-9._~+/-]{20,})\b/g,
-  /\b(?:API_KEY|ACCESS_KEY|SECRET|TOKEN|PASSWORD)\b\s*[:=]\s*["']?([^\s"',;]{8,})/gi,
+  /\b(?:[A-Z][A-Z0-9_]*_)?(?:API_KEY|ACCESS_KEY(?:_ID)?|SECRET|TOKEN|PASSWORD)\b["']?\s*[:=]\s*["']?([^\s"',;]{8,})/gi,
 ] as const;
 
 export class ApiKeyDetector implements SensitiveDataDetector {

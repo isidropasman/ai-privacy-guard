@@ -77,7 +77,7 @@ export class PrivacyReviewService {
       await this.settingsRepository.incrementCounter("allowedCount");
       // Los envíos limpios no generan evento individual: sólo alimentan los
       // contadores agregados que viajan en el heartbeat.
-      return { kind: "allow" };
+      return { kind: "allow", outcome: "clean" };
     }
 
     await this.settingsRepository.incrementCounter(
@@ -93,6 +93,11 @@ export class PrivacyReviewService {
         policy.decision === "BLOCK" && !settings.strictSecrets,
     });
 
+    /**
+     * La resolución es una sola: la que ve el Genie y la que viaja en el
+     * evento. `clean` en el retorno significa que el original salió, que para
+     * telemetría es `sent_original`; el resto de los nombres coinciden.
+     */
     const report = (resolution: SubmissionOutcome["resolution"]) => {
       this.onOutcome?.({
         provider: this.provider,
@@ -107,21 +112,28 @@ export class PrivacyReviewService {
     if (userDecision === "redact") {
       await this.settingsRepository.incrementCounter("redactedCount");
       report("redacted");
-      return { kind: "allow", replacementText: redaction.text };
+      return {
+        kind: "allow",
+        outcome: "redacted",
+        replacementText: redaction.text,
+      };
     }
 
     if (userDecision === "send-original") {
       const allowed = policy.decision === "WARN" || !settings.strictSecrets;
       report(allowed ? "sent_original" : "blocked");
-      return allowed ? { kind: "allow" } : { kind: "interrupt" };
+      return allowed
+        ? { kind: "allow", outcome: "clean" }
+        : { kind: "interrupt", outcome: "blocked" };
     }
 
     if (userDecision === "copy-safe") {
       await this.copy(redaction.text);
     }
 
-    report(policy.decision === "BLOCK" ? "blocked" : "cancelled");
-    return { kind: "interrupt" };
+    const outcome = policy.decision === "BLOCK" ? "blocked" : "cancelled";
+    report(outcome);
+    return { kind: "interrupt", outcome };
   }
 }
 

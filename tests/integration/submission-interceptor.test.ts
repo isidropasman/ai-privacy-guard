@@ -2,12 +2,10 @@
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatGPTAdapter } from "../../src/adapters/chatgpt/ChatGPTAdapter";
-import { SubmissionInterceptor } from "../../src/interception/SubmissionInterceptor";
-
-type ReviewResult =
-  | { kind: "allow"; replacementText?: string }
-  | { kind: "interrupt" }
-  | { kind: "error"; originalMayBeSent: boolean };
+import {
+  SubmissionInterceptor,
+  type SubmissionReview,
+} from "../../src/interception/SubmissionInterceptor";
 
 function renderComposer(text = "safe prompt") {
   document.body.innerHTML = `
@@ -21,13 +19,16 @@ function renderComposer(text = "safe prompt") {
 }
 
 function setupInterceptor(
-  review: (text: string) => Promise<ReviewResult> = async () => ({
+  review: (text: string) => Promise<SubmissionReview> = async () => ({
     kind: "allow",
+    outcome: "clean",
   }),
 ) {
   const submitted = vi.fn((event: Event) => event.preventDefault());
   const interrupted = vi.fn();
   const failed = vi.fn();
+  const reviewStarted = vi.fn();
+  const reviewCompleted = vi.fn();
   const reviewFailed = vi.fn(
     async (_originalMayBeSent: boolean): Promise<"allow" | "interrupt"> =>
       "interrupt",
@@ -38,6 +39,8 @@ function setupInterceptor(
     root: document,
     adapter: new ChatGPTAdapter(document),
     review,
+    onReviewStarted: reviewStarted,
+    onReviewCompleted: reviewCompleted,
     onInterrupted: interrupted,
     onReviewError: reviewFailed,
     onError: failed,
@@ -49,6 +52,8 @@ function setupInterceptor(
     submitted,
     interrupted,
     failed,
+    reviewStarted,
+    reviewCompleted,
     reviewFailed,
     stop: () => {
       stop();
@@ -73,7 +78,10 @@ describe("SubmissionInterceptor", () => {
     ["Cmd+Enter", { metaKey: true }],
   ])("allows %s through one approved submission", async (_label, modifiers) => {
     renderComposer();
-    const review = vi.fn(async () => ({ kind: "allow" as const }));
+    const review = vi.fn(async () => ({
+      kind: "allow" as const,
+      outcome: "clean" as const,
+    }));
     const harness = setupInterceptor(review);
     const composer = document.querySelector("textarea");
     const event = new KeyboardEvent("keydown", {
@@ -89,13 +97,24 @@ describe("SubmissionInterceptor", () => {
     expect(event.defaultPrevented).toBe(true);
     expect(review).toHaveBeenCalledOnce();
     expect(review).toHaveBeenCalledWith("safe prompt");
+    expect(harness.reviewStarted).toHaveBeenCalledOnce();
+    expect(harness.reviewCompleted).toHaveBeenCalledWith({
+      kind: "allow",
+      outcome: "clean",
+    });
+    expect(harness.reviewStarted.mock.invocationCallOrder[0]).toBeLessThan(
+      review.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY,
+    );
     expect(harness.submitted).toHaveBeenCalledOnce();
     harness.stop();
   });
 
   test("does not intercept Shift+Enter", async () => {
     renderComposer();
-    const review = vi.fn(async () => ({ kind: "allow" as const }));
+    const review = vi.fn(async () => ({
+      kind: "allow" as const,
+      outcome: "clean" as const,
+    }));
     const harness = setupInterceptor(review);
     const event = new KeyboardEvent("keydown", {
       key: "Enter",
@@ -115,7 +134,10 @@ describe("SubmissionInterceptor", () => {
 
   test("allows a send-button click through one approved submission", async () => {
     renderComposer();
-    const review = vi.fn(async () => ({ kind: "allow" as const }));
+    const review = vi.fn(async () => ({
+      kind: "allow" as const,
+      outcome: "clean" as const,
+    }));
     const harness = setupInterceptor(review);
     const event = new MouseEvent("click", {
       bubbles: true,
@@ -133,10 +155,10 @@ describe("SubmissionInterceptor", () => {
 
   test("blocks duplicate clicks while the first review is in flight", async () => {
     renderComposer();
-    let resolveReview: ((value: ReviewResult) => void) | undefined;
+    let resolveReview: ((value: SubmissionReview) => void) | undefined;
     const review = vi.fn(
       () =>
-        new Promise<ReviewResult>((resolve) => {
+        new Promise<SubmissionReview>((resolve) => {
           resolveReview = resolve;
         }),
     );
@@ -149,7 +171,7 @@ describe("SubmissionInterceptor", () => {
     button?.dispatchEvent(
       new MouseEvent("click", { bubbles: true, cancelable: true }),
     );
-    resolveReview?.({ kind: "allow" });
+    resolveReview?.({ kind: "allow", outcome: "clean" });
     await flushSubmission();
 
     expect(review).toHaveBeenCalledOnce();
@@ -159,7 +181,10 @@ describe("SubmissionInterceptor", () => {
 
   test("does not register duplicate listeners when started twice", async () => {
     renderComposer();
-    const review = vi.fn(async () => ({ kind: "allow" as const }));
+    const review = vi.fn(async () => ({
+      kind: "allow" as const,
+      outcome: "clean" as const,
+    }));
     const harness = setupInterceptor(review);
 
     harness.interceptor.start();
@@ -177,7 +202,10 @@ describe("SubmissionInterceptor", () => {
 
   test("allows a direct form submit through one approved submission", async () => {
     renderComposer();
-    const review = vi.fn(async () => ({ kind: "allow" as const }));
+    const review = vi.fn(async () => ({
+      kind: "allow" as const,
+      outcome: "clean" as const,
+    }));
     const harness = setupInterceptor(review);
     const form = document.querySelector("form");
     const event = new SubmitEvent("submit", {
@@ -196,7 +224,10 @@ describe("SubmissionInterceptor", () => {
 
   test("interrupts submission without changing the composer", async () => {
     renderComposer("critical fixture");
-    const harness = setupInterceptor(async () => ({ kind: "interrupt" }));
+    const harness = setupInterceptor(async () => ({
+      kind: "interrupt",
+      outcome: "blocked",
+    }));
     const event = new KeyboardEvent("keydown", {
       key: "Enter",
       bubbles: true,
@@ -217,6 +248,7 @@ describe("SubmissionInterceptor", () => {
     renderComposer("juan@example.com");
     const harness = setupInterceptor(async () => ({
       kind: "allow",
+      outcome: "redacted",
       replacementText: "[EMAIL_CONTACT]",
     }));
 
@@ -292,7 +324,10 @@ describe("SubmissionInterceptor", () => {
 
   test("uses the recreated composer and still submits exactly once", async () => {
     renderComposer("old");
-    const review = vi.fn(async () => ({ kind: "allow" as const }));
+    const review = vi.fn(async () => ({
+      kind: "allow" as const,
+      outcome: "clean" as const,
+    }));
     const harness = setupInterceptor(review);
 
     renderComposer("new");

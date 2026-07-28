@@ -48,6 +48,21 @@
       </section>
     </main>
     <script>
+      document.addEventListener(
+        "keydown",
+        (event) => {
+          if (
+            document.body.dataset.blockControlEnter === "true" &&
+            event.key === "Enter" &&
+            event.ctrlKey
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        },
+        true,
+      );
+
       const attachSubmit = (form) => {
         const composer = form.querySelector(
           'textarea, [contenteditable="true"]',

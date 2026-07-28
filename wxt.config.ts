@@ -17,7 +17,20 @@ export default defineConfig({
     host_permissions: [
       "https://chatgpt.com/*",
       "https://chat.openai.com/*",
+      "https://claude.ai/*",
+      "https://gemini.google.com/*",
       apiHost,
+    ],
+    web_accessible_resources: [
+      {
+        resources: ["mascot/*.webp"],
+        matches: [
+          "https://chatgpt.com/*",
+          "https://chat.openai.com/*",
+          "https://claude.ai/*",
+          "https://gemini.google.com/*",
+        ],
+      },
     ],
     action: {
       default_title: "AI Privacy Guard",

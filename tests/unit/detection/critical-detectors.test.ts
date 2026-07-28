@@ -17,6 +17,7 @@ describe("critical detectors", () => {
 
   test.each([
     ["OPENAI_API_KEY=sk-proj-example-for-testing", "api-key"],
+    ["OPENAI_API_KEY=sk_12312434sdfsef_test_33ddd", "api-key"],
     ["ANTHROPIC_API_KEY=sk-ant-example-fixture-token", "api-key"],
     ["AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE", "api-key"],
     ["GITHUB_TOKEN=ghp_examplefixturetoken1234567890", "api-key"],

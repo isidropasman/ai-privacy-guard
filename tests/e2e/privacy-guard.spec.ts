@@ -18,6 +18,50 @@ async function openFixture(context: BrowserContext) {
 
 test("safe prompt sends once without a modal", async ({ context }) => {
   const page = await openFixture(context);
+  await expect
+    .poll(() =>
+      page.locator("ai-privacy-guard").evaluate((host) => {
+        const preload = host.shadowRoot?.querySelector(
+          "img[data-mascot-preload]",
+        );
+        const sprite = host.shadowRoot?.querySelector("[data-mascot-sprite]");
+        const trigger = host.shadowRoot?.querySelector(
+          "[data-mascot-trigger]",
+        );
+        return preload instanceof HTMLImageElement &&
+          sprite instanceof HTMLElement &&
+          trigger instanceof HTMLButtonElement
+          ? preload.complete && preload.naturalWidth > 0
+          : false;
+      }),
+    )
+    .toBe(true);
+  await page
+    .getByRole("button", { name: "¿Qué hace Security Genie?" })
+    .hover();
+  await expect
+    .poll(() =>
+      page.locator("ai-privacy-guard").evaluate((host) => {
+        const trigger = host.shadowRoot?.querySelector(
+          "[data-mascot-trigger]",
+        );
+        const sprite = host.shadowRoot?.querySelector("[data-mascot-sprite]");
+        if (
+          !(trigger instanceof HTMLElement) ||
+          !(sprite instanceof HTMLElement)
+        ) {
+          return null;
+        }
+        return {
+          triggerAnimation: getComputedStyle(trigger).animationName,
+          spriteDuration: getComputedStyle(sprite).animationDuration,
+        };
+      }),
+    )
+    .toEqual({
+      triggerAnimation: "security-genie-hover",
+      spriteDuration: "2.6s",
+    });
   await page
     .locator("#prompt-textarea")
     .fill("Explicame de manera sencilla qué es Kubernetes.");
@@ -29,6 +73,26 @@ test("safe prompt sends once without a modal", async ({ context }) => {
     "1",
   );
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect
+    .poll(() =>
+      page.locator("ai-privacy-guard").evaluate((host) => {
+        const sprite = host.shadowRoot?.querySelector("[data-mascot-sprite]");
+        if (!(sprite instanceof HTMLElement)) return null;
+        const style = getComputedStyle(sprite);
+        return {
+          duration: style.animationDuration,
+          iterations: style.animationIterationCount,
+          state: host.shadowRoot
+            ?.querySelector("[data-mascot-state]")
+            ?.getAttribute("data-mascot-state"),
+        };
+      }),
+    )
+    .toEqual({
+      duration: "2.6s",
+      iterations: "1",
+      state: "allow",
+    });
 });
 
 test("critical credential is blocked and redacted before one send", async ({
@@ -37,12 +101,12 @@ test("critical credential is blocked and redacted before one send", async ({
   const page = await openFixture(context);
   await page
     .locator("#prompt-textarea")
-    .fill("OPENAI_API_KEY=sk-proj-example-for-testing");
+    .fill("OPENAI_API_KEY=sk_12312434sdfsef_test_33ddd");
 
   await page.locator("#prompt-textarea").press("Enter");
 
   await expect(
-    page.getByRole("heading", { name: "Envío bloqueado" }),
+    page.getByRole("heading", { name: "Este mensaje no puede salir" }),
   ).toBeVisible();
   await expect(page.locator("body[data-submit-count]")).toHaveAttribute(
     "data-submit-count",
@@ -74,8 +138,30 @@ test("PII warning anonymizes name and email in one click", async ({
 
   await page.locator('[data-testid="send-button"]').click();
   await expect(
-    page.getByRole("heading", { name: "Encontramos información sensible" }),
+    page.getByRole("heading", { name: "Encontré datos sensibles" }),
   ).toBeVisible();
+  const anchoredSurface = await page
+    .locator("ai-privacy-guard")
+    .evaluate((host) => {
+      const genie = host.shadowRoot?.querySelector(".security-genie");
+      const bubble = host.shadowRoot?.querySelector(".genie-bubble");
+      if (!(genie instanceof HTMLElement) || !(bubble instanceof HTMLElement)) {
+        return null;
+      }
+      const genieStyle = getComputedStyle(genie);
+      const bubbleStyle = getComputedStyle(bubble);
+      return {
+        geniePosition: genieStyle.position,
+        bubblePosition: bubbleStyle.position,
+        hasCenteredOverlay:
+          host.shadowRoot?.querySelector(".modal-layer") !== null,
+      };
+    });
+  expect(anchoredSurface).toEqual({
+    geniePosition: "fixed",
+    bubblePosition: "absolute",
+    hasCenteredOverlay: false,
+  });
   await page.getByRole("button", { name: "Anonimizar y enviar" }).click();
 
   await expect(page.locator("#last-submission")).toHaveText(
@@ -120,7 +206,7 @@ test("private key fixture remains blocked", async ({ context }) => {
   await page.locator("#prompt-textarea").press("Enter");
 
   await expect(
-    page.getByRole("heading", { name: "Envío bloqueado" }),
+    page.getByRole("heading", { name: "Este mensaje no puede salir" }),
   ).toBeVisible();
   await expect(page.locator("body[data-submit-count]")).toHaveAttribute(
     "data-submit-count",
@@ -140,7 +226,7 @@ test("confidential financial prompt warns and anonymizes amounts", async ({
 
   await page.locator("#prompt-textarea").press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Encontramos información sensible" }),
+    page.getByRole("heading", { name: "Encontré datos sensibles" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Anonimizar y enviar" }).click();
 
@@ -169,5 +255,25 @@ test("Shift+Enter does not submit and recreated composer remains protected", asy
   await expect(page.locator("body[data-submit-count]")).toHaveAttribute(
     "data-submit-count",
     "1",
+  );
+});
+
+test("Ctrl+Enter remains protected when the provider intercepts it on document", async ({
+  context,
+}) => {
+  const page = await openFixture(context);
+  await page.locator("body[data-submit-count]").evaluate((body) => {
+    body.dataset.blockControlEnter = "true";
+  });
+  await page.locator("#prompt-textarea").fill("Prompt seguro con Ctrl+Enter");
+
+  await page.locator("#prompt-textarea").press("Control+Enter");
+
+  await expect(page.locator("body[data-submit-count]")).toHaveAttribute(
+    "data-submit-count",
+    "1",
+  );
+  await expect(page.locator("#last-submission")).toHaveText(
+    "Prompt seguro con Ctrl+Enter",
   );
 });
