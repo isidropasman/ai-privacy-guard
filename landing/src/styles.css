@@ -10,8 +10,8 @@
   --muted: #9fb6c9;
   --line: #29435a;
   --line-soft: #1b3145;
-  --safe: #5cf2c2;
-  --info: #45c8ff;
+  --safe: #f2b95c;
+  --info: #b891ff;
   --warn: #ffcb66;
   --risk: #ff665c;
 
@@ -21,8 +21,8 @@
   --step: 8px;
   --frame: 1px solid var(--line);
   --grid:
-    linear-gradient(90deg, rgb(92 242 194 / 3%) 1px, transparent 1px),
-    linear-gradient(rgb(92 242 194 / 3%) 1px, transparent 1px);
+    linear-gradient(90deg, rgb(242 185 92 / 3%) 1px, transparent 1px),
+    linear-gradient(rgb(242 185 92 / 3%) 1px, transparent 1px);
 
   color-scheme: dark;
 }
@@ -41,7 +41,7 @@ body {
   margin: 0;
   color: var(--text);
   background:
-    radial-gradient(1200px 600px at 70% -10%, rgb(69 200 255 / 8%), transparent 60%),
+    radial-gradient(1200px 600px at 70% -10%, rgb(184 145 255 / 8%), transparent 60%),
     var(--night);
   font-family: var(--sans);
   font-size: 16px;
@@ -168,7 +168,7 @@ progress::-moz-progress-bar {
   color: var(--night);
   border: 0;
   background: var(--safe);
-  box-shadow: 0 4px 0 #2d8b72;
+  box-shadow: 0 4px 0 #a3792f;
   cursor: pointer;
   font-family: var(--sans);
   font-size: 13px;
@@ -179,7 +179,7 @@ progress::-moz-progress-bar {
 }
 
 .button:hover {
-  box-shadow: 0 2px 0 #2d8b72;
+  box-shadow: 0 2px 0 #a3792f;
   transform: translateY(2px);
 }
 
@@ -276,7 +276,7 @@ progress::-moz-progress-bar {
   width: 6px;
   height: 6px;
   background: var(--safe);
-  box-shadow: 0 0 0 2px rgb(92 242 194 / 18%);
+  box-shadow: 0 0 0 2px rgb(242 185 92 / 18%);
 }
 
 .nav-links {
@@ -365,8 +365,8 @@ progress::-moz-progress-bar {
 .incident-scene__local-badge {
   padding: 3px 7px;
   color: var(--safe);
-  border: 1px solid rgb(92 242 194 / 40%);
-  background: rgb(92 242 194 / 8%);
+  border: 1px solid rgb(242 185 92 / 40%);
+  background: rgb(242 185 92 / 8%);
   font-family: var(--mono);
   font-size: 9px;
   letter-spacing: 0.1em;
@@ -488,8 +488,8 @@ progress::-moz-progress-bar {
 
 .provider-status--available {
   color: var(--safe);
-  border: 1px solid rgb(92 242 194 / 40%);
-  background: rgb(92 242 194 / 8%);
+  border: 1px solid rgb(242 185 92 / 40%);
+  background: rgb(242 185 92 / 8%);
 }
 
 .provider-status--planned {
@@ -824,8 +824,8 @@ progress::-moz-progress-bar {
 }
 
 .incident-gallery__case-selector button[aria-selected="true"] {
-  border-color: rgb(92 242 194 / 45%);
-  background: rgb(92 242 194 / 7%);
+  border-color: rgb(242 185 92 / 45%);
+  background: rgb(242 185 92 / 7%);
   box-shadow: inset 2px 0 var(--safe);
 }
 
@@ -992,8 +992,8 @@ progress::-moz-progress-bar {
 .incident-scene__replacement {
   padding: 1px 3px;
   color: var(--safe);
-  border: 1px solid rgb(92 242 194 / 40%);
-  background: rgb(92 242 194 / 10%);
+  border: 1px solid rgb(242 185 92 / 40%);
+  background: rgb(242 185 92 / 10%);
 }
 
 .incident-scene--findings .incident-scene__sensitive {
@@ -1032,8 +1032,8 @@ progress::-moz-progress-bar {
   gap: 10px;
   padding: 10px 12px;
   align-items: center;
-  border: 1px solid rgb(92 242 194 / 35%);
-  background: rgb(92 242 194 / 7%);
+  border: 1px solid rgb(242 185 92 / 35%);
+  background: rgb(242 185 92 / 7%);
 }
 
 .incident-scene__receipt span {
@@ -1102,7 +1102,7 @@ progress::-moz-progress-bar {
 }
 
 .privacy-architecture__local {
-  border-color: rgb(92 242 194 / 35%);
+  border-color: rgb(242 185 92 / 35%);
   background: var(--grid), var(--surface);
   background-size: 24px 24px, 24px 24px, auto;
 }
