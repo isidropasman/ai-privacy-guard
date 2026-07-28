@@ -1,13 +1,24 @@
 import { defineConfig } from "wxt";
 
+/**
+ * El host del API es el mismo para todas las empresas, así que puede quedar
+ * fijo en el manifest. Lo que varía por empresa viaja en `config.json`, que el
+ * dashboard inyecta al generar el paquete.
+ */
+const apiHost = process.env.WXT_API_HOST ?? "http://localhost:8787/*";
+
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: {
     name: "AI Privacy Guard",
     description: "Usá la IA. No filtres información confidencial.",
     version: "0.1.0",
-    permissions: ["storage"],
-    host_permissions: ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+    permissions: ["storage", "alarms"],
+    host_permissions: [
+      "https://chatgpt.com/*",
+      "https://chat.openai.com/*",
+      apiHost,
+    ],
     action: {
       default_title: "AI Privacy Guard",
     },

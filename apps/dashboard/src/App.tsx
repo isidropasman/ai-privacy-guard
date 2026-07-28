@@ -1,19 +1,79 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { api, ApiError } from "./api";
 import { BaseRulesSection } from "./BaseRulesSection";
+import { CompaniesSection } from "./CompaniesSection";
+import { CompanyOverviewSection } from "./CompanyOverviewSection";
 import { EventsSection } from "./EventsSection";
+import { ExtensionSection } from "./ExtensionSection";
+import { GlobalActivitySection } from "./GlobalActivitySection";
+import { LoginScreen } from "./LoginScreen";
 import { RulesSection } from "./RulesSection";
-import { loadRules, saveRules } from "./storage";
-import type { CustomRule } from "./types";
+import type { Company } from "./types";
+import { UsersSection } from "./UsersSection";
 
-type Section = "base-rules" | "rules" | "events";
+type AdminSection = "companies" | "activity" | "base-rules";
+export type CompanySection =
+  "overview" | "rules" | "base-rules" | "users" | "events" | "extension";
+
+const adminNav: readonly {
+  readonly id: AdminSection;
+  readonly label: string;
+}[] = [
+  { id: "companies", label: "Empresas" },
+  { id: "activity", label: "Actividad global" },
+  { id: "base-rules", label: "Reglas base" },
+];
+
+const companyNav: readonly {
+  readonly id: CompanySection;
+  readonly label: string;
+}[] = [
+  { id: "overview", label: "Resumen" },
+  { id: "rules", label: "Reglas personalizadas" },
+  { id: "base-rules", label: "Reglas base" },
+  { id: "users", label: "Usuarios" },
+  { id: "events", label: "Eventos" },
+  { id: "extension", label: "Extensión" },
+];
 
 export function App() {
-  const [section, setSection] = useState<Section>("base-rules");
-  const [rules, setRules] = useState<readonly CustomRule[]>(loadRules);
+  const [authenticated, setAuthenticated] = useState<boolean>();
+  const [activeCompany, setActiveCompany] = useState<Company>();
+  const [adminSection, setAdminSection] = useState<AdminSection>("companies");
+  const [companySection, setCompanySection] =
+    useState<CompanySection>("overview");
 
   useEffect(() => {
-    saveRules(rules);
-  }, [rules]);
+    api
+      .me()
+      .then(() => {
+        setAuthenticated(true);
+      })
+      .catch(() => {
+        setAuthenticated(false);
+      });
+  }, []);
+
+  const handleUnauthorized = useCallback((error: unknown) => {
+    if (error instanceof ApiError && error.status === 401) {
+      setAuthenticated(false);
+      setActiveCompany(undefined);
+    }
+  }, []);
+
+  if (authenticated === undefined) {
+    return <p className="boot-state">Cargando…</p>;
+  }
+
+  if (!authenticated) {
+    return (
+      <LoginScreen
+        onAuthenticated={() => {
+          setAuthenticated(true);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="dashboard-shell">
@@ -22,43 +82,105 @@ export function App() {
           <span>PG</span>
           <div>
             <strong>Privacy Guard</strong>
-            <small>Dashboard local</small>
+            <small>Consola super-admin</small>
           </div>
         </div>
-        <nav aria-label="Secciones del dashboard">
-          <button
-            type="button"
-            className={section === "base-rules" ? "nav-active" : ""}
-            onClick={() => setSection("base-rules")}
-          >
-            Reglas base
-          </button>
-          <button
-            type="button"
-            className={section === "rules" ? "nav-active" : ""}
-            onClick={() => setSection("rules")}
-          >
-            Reglas personalizadas
-          </button>
-          <button
-            type="button"
-            className={section === "events" ? "nav-active" : ""}
-            onClick={() => setSection("events")}
-          >
-            Eventos
-          </button>
-        </nav>
-        <p className="scope-note">
-          Prototipo local. Todavía no está conectado con la extensión.
-        </p>
-      </aside>
-      <main className="workspace">
-        {section === "base-rules" ? (
-          <BaseRulesSection />
-        ) : section === "rules" ? (
-          <RulesSection rules={rules} onChange={setRules} />
+
+        {activeCompany === undefined ? (
+          <nav aria-label="Secciones de la consola">
+            {adminNav.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={adminSection === item.id ? "nav-active" : ""}
+                onClick={() => setAdminSection(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
         ) : (
-          <EventsSection />
+          <>
+            <div className="tenant-chip">
+              <p className="eyebrow">Trabajando en</p>
+              <strong>{activeCompany.name}</strong>
+              <small>{activeCompany.domain}</small>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => {
+                  setActiveCompany(undefined);
+                  setAdminSection("companies");
+                }}
+              >
+                ← Volver a todas las empresas
+              </button>
+            </div>
+            <nav aria-label="Secciones de la empresa">
+              {companyNav.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={companySection === item.id ? "nav-active" : ""}
+                  onClick={() => setCompanySection(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          </>
+        )}
+
+        <div className="sidebar-footer">
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => {
+              void api.logout().finally(() => {
+                setAuthenticated(false);
+                setActiveCompany(undefined);
+              });
+            }}
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </aside>
+
+      <main className="workspace">
+        {activeCompany === undefined ? (
+          adminSection === "companies" ? (
+            <CompaniesSection
+              onEnterCompany={(company) => {
+                setActiveCompany(company);
+                setCompanySection("overview");
+              }}
+              onError={handleUnauthorized}
+            />
+          ) : adminSection === "activity" ? (
+            <GlobalActivitySection onError={handleUnauthorized} />
+          ) : (
+            <BaseRulesSection />
+          )
+        ) : companySection === "overview" ? (
+          <CompanyOverviewSection
+            company={activeCompany}
+            onNavigate={setCompanySection}
+            onError={handleUnauthorized}
+          />
+        ) : companySection === "rules" ? (
+          <RulesSection company={activeCompany} onError={handleUnauthorized} />
+        ) : companySection === "base-rules" ? (
+          <BaseRulesSection company={activeCompany} />
+        ) : companySection === "users" ? (
+          <UsersSection company={activeCompany} onError={handleUnauthorized} />
+        ) : companySection === "events" ? (
+          <EventsSection company={activeCompany} onError={handleUnauthorized} />
+        ) : (
+          <ExtensionSection
+            company={activeCompany}
+            onError={handleUnauthorized}
+          />
         )}
       </main>
     </div>

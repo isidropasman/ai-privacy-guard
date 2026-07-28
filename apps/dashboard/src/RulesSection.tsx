@@ -1,18 +1,31 @@
 import { useState } from "react";
-import type { CustomRule, RuleAction, RuleSeverity } from "./types";
+import { api, type RulePayload } from "./api";
+import { rethrow } from "./CompaniesSection";
+import type { Company, CustomRule, RuleAction, RuleSeverity } from "./types";
+import {
+  ActionBadge,
+  formatDate,
+  LoadState,
+  PageHeader,
+  SeverityBadge,
+  Summary,
+  SummaryStrip,
+} from "./ui";
+import { useAsync } from "./useAsync";
 
 interface RuleFormState {
   readonly id?: string;
   readonly name: string;
+  readonly description: string;
   readonly keywords: string;
   readonly severity: RuleSeverity;
   readonly action: RuleAction;
   readonly enabled: boolean;
-  readonly createdAt?: string;
 }
 
 const emptyRule: RuleFormState = {
   name: "",
+  description: "",
   keywords: "",
   severity: "medium",
   action: "warn",
@@ -20,19 +33,36 @@ const emptyRule: RuleFormState = {
 };
 
 export function RulesSection({
-  rules,
-  onChange,
+  company,
+  onError,
 }: {
-  readonly rules: readonly CustomRule[];
-  readonly onChange: (rules: readonly CustomRule[]) => void;
+  readonly company: Company;
+  readonly onError: (error: unknown) => void;
 }) {
   const [editing, setEditing] = useState<RuleFormState>();
+  const state = useAsync(
+    () => api.rules(company.id).catch(rethrow(onError)),
+    [company.id, onError],
+  );
+
+  const rules = state.value ?? [];
+
+  const toggle = (rule: CustomRule) => {
+    void api
+      .updateRule(company.id, rule.id, {
+        ...toPayload(rule),
+        enabled: !rule.enabled,
+      })
+      .then(state.reload)
+      .catch(onError);
+  };
 
   return (
     <>
       <PageHeader
+        eyebrow={company.name}
         title="Reglas personalizadas"
-        description="Definí términos internos y la respuesta esperada. Los cambios se guardan solamente en este navegador."
+        description="Términos internos de esta empresa. Se administran acá, pero todavía no bajan a la extensión: sólo se aplican las reglas base."
         action={
           <button
             className="button button--primary"
@@ -44,7 +74,7 @@ export function RulesSection({
         }
       />
 
-      <section className="summary-strip" aria-label="Resumen de reglas">
+      <SummaryStrip>
         <Summary label="Total" value={rules.length} />
         <Summary
           label="Activas"
@@ -54,7 +84,11 @@ export function RulesSection({
           label="Bloqueo"
           value={rules.filter((rule) => rule.action === "block").length}
         />
-      </section>
+        <Summary
+          label="Keywords"
+          value={rules.reduce((total, rule) => total + rule.keywords.length, 0)}
+        />
+      </SummaryStrip>
 
       <section className="panel table-panel">
         <div className="table-scroll">
@@ -75,10 +109,9 @@ export function RulesSection({
                   <td>
                     <strong>{rule.name}</strong>
                     <small>
-                      Actualizada{" "}
-                      {new Intl.DateTimeFormat("es-AR").format(
-                        new Date(rule.updatedAt),
-                      )}
+                      {rule.description === ""
+                        ? `Actualizada ${formatDate(rule.updatedAt)}`
+                        : rule.description}
                     </small>
                   </td>
                   <td>
@@ -92,9 +125,7 @@ export function RulesSection({
                     <SeverityBadge severity={rule.severity} />
                   </td>
                   <td>
-                    <span className={`action action--${rule.action}`}>
-                      {actionLabels[rule.action]}
-                    </span>
+                    <ActionBadge action={rule.action} />
                   </td>
                   <td>
                     <button
@@ -105,19 +136,7 @@ export function RulesSection({
                           : "status-toggle"
                       }
                       aria-pressed={rule.enabled}
-                      onClick={() =>
-                        onChange(
-                          rules.map((current) =>
-                            current.id === rule.id
-                              ? {
-                                  ...current,
-                                  enabled: !current.enabled,
-                                  updatedAt: new Date().toISOString(),
-                                }
-                              : current,
-                          ),
-                        )
-                      }
+                      onClick={() => toggle(rule)}
                     >
                       {rule.enabled ? "Activa" : "Inactiva"}
                     </button>
@@ -130,11 +149,11 @@ export function RulesSection({
                         setEditing({
                           id: rule.id,
                           name: rule.name,
+                          description: rule.description,
                           keywords: rule.keywords.join("\n"),
                           severity: rule.severity,
                           action: rule.action,
                           enabled: rule.enabled,
-                          createdAt: rule.createdAt,
                         })
                       }
                     >
@@ -146,30 +165,40 @@ export function RulesSection({
             </tbody>
           </table>
         </div>
+        <LoadState
+          loading={state.loading}
+          error={state.error}
+          empty={rules.length === 0}
+          emptyMessage="Esta empresa todavía no definió reglas propias. Las reglas base siguen aplicándose."
+          onRetry={state.reload}
+        />
       </section>
 
       {editing === undefined ? null : (
         <RuleEditor
+          companyName={company.name}
           initial={editing}
           onCancel={() => setEditing(undefined)}
           onSave={(form) => {
-            const now = new Date().toISOString();
-            const saved: CustomRule = {
-              id: form.id ?? crypto.randomUUID(),
+            const payload: RulePayload = {
               name: form.name.trim(),
+              description: form.description.trim(),
               keywords: normalizeKeywords(form.keywords),
               severity: form.severity,
               action: form.action,
               enabled: form.enabled,
-              createdAt: form.createdAt ?? now,
-              updatedAt: now,
             };
-            onChange(
+            const request =
               form.id === undefined
-                ? [saved, ...rules]
-                : rules.map((rule) => (rule.id === form.id ? saved : rule)),
-            );
-            setEditing(undefined);
+                ? api.createRule(company.id, payload)
+                : api.updateRule(company.id, form.id, payload);
+
+            void request
+              .then(() => {
+                setEditing(undefined);
+                state.reload();
+              })
+              .catch(onError);
           }}
         />
       )}
@@ -177,11 +206,24 @@ export function RulesSection({
   );
 }
 
+function toPayload(rule: CustomRule): RulePayload {
+  return {
+    name: rule.name,
+    description: rule.description,
+    keywords: rule.keywords,
+    severity: rule.severity,
+    action: rule.action,
+    enabled: rule.enabled,
+  };
+}
+
 function RuleEditor({
+  companyName,
   initial,
   onCancel,
   onSave,
 }: {
+  readonly companyName: string;
   readonly initial: RuleFormState;
   readonly onCancel: () => void;
   readonly onSave: (rule: RuleFormState) => void;
@@ -212,7 +254,7 @@ function RuleEditor({
       >
         <header>
           <div>
-            <p className="eyebrow">Configuración local</p>
+            <p className="eyebrow">{companyName}</p>
             <h2>{form.id === undefined ? "Nueva regla" : "Editar regla"}</h2>
           </div>
           <button type="button" onClick={onCancel} aria-label="Cerrar">
@@ -226,6 +268,17 @@ function RuleEditor({
               value={form.name}
               maxLength={120}
               onChange={(event) => update("name", event.currentTarget.value)}
+            />
+          </label>
+          <label>
+            Descripción
+            <input
+              value={form.description}
+              maxLength={200}
+              placeholder="Para qué sirve esta regla"
+              onChange={(event) =>
+                update("description", event.currentTarget.value)
+              }
             />
           </label>
           <label>
@@ -300,54 +353,6 @@ function RuleEditor({
   );
 }
 
-export function PageHeader({
-  title,
-  description,
-  action,
-}: {
-  readonly title: string;
-  readonly description: string;
-  readonly action?: React.ReactNode;
-}) {
-  return (
-    <header className="page-header">
-      <div>
-        <p className="eyebrow">AI Privacy Guard</p>
-        <h1>{title}</h1>
-        <p>{description}</p>
-      </div>
-      {action}
-    </header>
-  );
-}
-
-export function SeverityBadge({
-  severity,
-}: {
-  readonly severity: RuleSeverity;
-}) {
-  return (
-    <span className={`severity severity--${severity}`}>
-      {severityLabels[severity]}
-    </span>
-  );
-}
-
-function Summary({
-  label,
-  value,
-}: {
-  readonly label: string;
-  readonly value: number;
-}) {
-  return (
-    <div>
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
-  );
-}
-
 function normalizeKeywords(value: string): string[] {
   return [
     ...new Set(
@@ -358,17 +363,3 @@ function normalizeKeywords(value: string): string[] {
     ),
   ];
 }
-
-const severityLabels: Record<RuleSeverity, string> = {
-  low: "Baja",
-  medium: "Media",
-  high: "Alta",
-  critical: "Crítica",
-};
-
-const actionLabels: Record<RuleAction, string> = {
-  allow: "Permitir",
-  warn: "Advertir",
-  replace: "Reemplazar",
-  block: "Bloquear",
-};

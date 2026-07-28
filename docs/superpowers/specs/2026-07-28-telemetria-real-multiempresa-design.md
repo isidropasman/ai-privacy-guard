@@ -54,8 +54,8 @@ El trabajo total se descompone en cuatro slices independientes:
 
 1. El super-admin descarga desde el dashboard el paquete de una empresa, lo
    descomprime y lo carga en `chrome://extensions` con "Cargar descomprimida".
-2. El empleado abre el popup, que ya reconoce a qué empresa pertenece, ingresa
-   su email y queda enrolado.
+2. Al instalarse, la extensión abre sola una pestaña que ya reconoce a qué
+   empresa pertenece. El empleado ingresa su email y queda enrolado.
 3. Escribe un prompt con una API key en ChatGPT. La extensión lo bloquea.
 4. El evento aparece en el dashboard, dentro de esa empresa y atribuido a ese
    usuario, sin contener el prompt ni el fragmento detectado.
@@ -325,10 +325,30 @@ empresa vive en `config.json`, no en el manifest.
 `web_accessible_resources` no hace falta: `config.json` lo lee la propia
 extensión, no la página.
 
+### Pestaña de bienvenida
+
+Al instalarse, la extensión abre una pestaña con la pantalla de conexión, vía
+`browser.runtime.onInstalled` → `browser.tabs.create`. Requiere sumar el
+entrypoint `entrypoints/welcome/` y el permiso `tabs` no es necesario para
+`tabs.create` con una URL propia.
+
+Existe porque Chrome no fija el ícono de la extensión al cargarla: queda oculto
+detrás del menú de extensiones. Si el enrolamiento viviera sólo en el popup, una
+parte de los empleados usaría la extensión protegida pero desconectada, y en el
+dashboard esa empresa parecería no haberla instalado. La pantalla tiene que ir a
+buscar al usuario, no al revés.
+
+Se abre una sola vez, en `onInstalled` con `reason === "install"`, y no vuelve a
+aparecer si el usuario decide no conectarse.
+
 ### Popup
 
-Gana una pantalla de enrolamiento con estado de conexión y botón de desconectar.
-Los toggles actuales se conservan.
+Muestra la misma pantalla de enrolamiento mientras la instalación no esté
+conectada, y después el estado de conexión con botón de desconectar. Los toggles
+actuales se conservan.
+
+Comparte los componentes de enrolamiento con la pestaña de bienvenida: es la
+misma pantalla montada en dos entrypoints, no dos implementaciones.
 
 Tiene dos caminos según lo que traiga `RuntimeConfigRepository`:
 
@@ -433,6 +453,9 @@ Ambos deben reescribirse antes de habilitar la ingesta, cubriendo:
 - `EnrollmentRepository`: normalización y defaults seguros.
 - `RuntimeConfigRepository`: config válida, config ausente, config corrupta. Los
   dos últimos casos deben resolver en modo local sin telemetría.
+- Pantalla de enrolamiento: los dos caminos —con código en el paquete y sin él—
+  renderizan los campos correctos, y el aviso de privacidad está presente antes
+  de poder conectar.
 - Backoff: progresión, tope y jitter acotado.
 
 **Integración del API**

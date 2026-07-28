@@ -18,6 +18,9 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
+    "api": "tsx apps/api/src/server.ts",
+    "api:dev": "tsx watch apps/api/src/server.ts",
+    "stack": "pnpm build && pnpm api",
     "e2e": "pnpm build && playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -28,12 +31,17 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.4",
+    "@neondatabase/serverless": "^1.1.0",
+    "express": "^5.2.1",
+    "jszip": "^3.10.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.0",
+    "@types/express": "^5.0.6",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@wxt-dev/module-react": "^1.1.5",
@@ -42,6 +50,7 @@
     "globals": "^17.8.0",
     "jsdom": "^30.0.0",
     "prettier": "^3.9.6",
+    "tsx": "^4.23.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.10",

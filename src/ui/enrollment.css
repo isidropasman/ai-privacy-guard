@@ -1,0 +1,115 @@
+.enrollment {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #d5e0da;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.enrollment h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.enrollment p {
+  margin: 0;
+  color: #4c5a55;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.enrollment-company {
+  color: #176b52 !important;
+  font-weight: 700;
+}
+
+.enrollment label {
+  display: grid;
+  gap: 6px;
+  color: #65726d;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.enrollment input {
+  padding: 10px 11px;
+  border: 1px solid #cbd8d2;
+  border-radius: 9px;
+  outline: none;
+  color: #17201d;
+  background: #fbfdfc;
+  font-size: 13px;
+}
+
+.enrollment input:focus {
+  border-color: #176b52;
+  box-shadow: 0 0 0 3px rgb(23 107 82 / 12%);
+}
+
+.enrollment-notice {
+  padding: 10px 12px;
+  border-left: 3px solid #e0b64a;
+  border-radius: 0 8px 8px 0;
+  background: #fdf7e8;
+  color: #6b5a2c !important;
+  font-size: 11px !important;
+}
+
+.enrollment-error {
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: #fbe9e4;
+  color: #8a3b23 !important;
+  font-size: 11px !important;
+}
+
+.enrollment-pending {
+  color: #7a6a34 !important;
+  font-size: 11px !important;
+}
+
+.enrollment-primary,
+.enrollment-secondary {
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.enrollment-primary {
+  color: #fff;
+  background: #176b52;
+}
+
+.enrollment-primary:disabled,
+.enrollment-secondary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.enrollment-secondary {
+  border-color: #cbd8d2;
+  color: #4c5a55;
+  background: transparent;
+}
+
+.enrollment-optional {
+  color: #7d8a85 !important;
+  font-size: 11px !important;
+  text-align: center;
+}
+
+.enrollment--connected {
+  border-color: #b6d9c8;
+  background: #f2fbf7;
+}
+
+.enrollment--local {
+  border-style: dashed;
+}

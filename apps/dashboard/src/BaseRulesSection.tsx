@@ -1,5 +1,6 @@
 import { describeBaseRules } from "../../../src/detection/createDetectorEngine";
-import { PageHeader } from "./RulesSection";
+import type { Company } from "./types";
+import { PageHeader, Summary, SummaryStrip } from "./ui";
 
 const settingLabels: Record<
   "warningsEnabled" | "financialDetectionEnabled",
@@ -9,25 +10,30 @@ const settingLabels: Record<
   financialDetectionEnabled: "Detectar información financiera",
 };
 
-export function BaseRulesSection() {
+export function BaseRulesSection({ company }: { readonly company?: Company }) {
   const rules = describeBaseRules();
   const alwaysActiveCount = rules.filter((rule) => rule.alwaysActive).length;
 
   return (
     <>
       <PageHeader
+        eyebrow={company === undefined ? "Super admin" : company.name}
         title="Reglas base"
-        description="Detectores que ya corren en la extensión, tal como están definidos en el código fuente. Son de solo lectura: no se editan desde acá."
+        description={
+          company === undefined
+            ? "Detectores que ya corren en la extensión, tal como están definidos en el código fuente. Se aplican a todas las empresas y son de solo lectura."
+            : `Detectores compartidos que ${company.name} recibe siempre en su extensión. Son de solo lectura: no se editan ni se desactivan por empresa.`
+        }
       />
 
-      <section className="summary-strip" aria-label="Resumen de reglas base">
+      <SummaryStrip>
         <Summary label="Total" value={rules.length} />
         <Summary label="Siempre activas" value={alwaysActiveCount} />
         <Summary
           label="Condicionadas"
           value={rules.length - alwaysActiveCount}
         />
-      </section>
+      </SummaryStrip>
 
       <section className="panel table-panel">
         <div className="table-scroll">
@@ -46,7 +52,7 @@ export function BaseRulesSection() {
                     <strong>{rule.label}</strong>
                     <small>{rule.id}</small>
                   </td>
-                  <td>{rule.description}</td>
+                  <td className="cell-wrap">{rule.description}</td>
                   <td>
                     {rule.alwaysActive ? (
                       <span className="status-toggle status-toggle--on">
@@ -69,20 +75,5 @@ export function BaseRulesSection() {
         </div>
       </section>
     </>
-  );
-}
-
-function Summary({
-  label,
-  value,
-}: {
-  readonly label: string;
-  readonly value: number;
-}) {
-  return (
-    <div>
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
   );
 }
