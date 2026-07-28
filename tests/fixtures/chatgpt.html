@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ChatGPT fixture</title>
+    <style>
+      body {
+        margin: 0;
+        color: #e7e7e7;
+        background: #212121;
+        font-family: system-ui, sans-serif;
+      }
+      main {
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+      }
+      form {
+        display: grid;
+        grid-template-columns: minmax(320px, 600px) auto;
+        gap: 8px;
+      }
+      textarea,
+      [contenteditable="true"] {
+        min-height: 80px;
+        padding: 14px;
+        border: 1px solid #555;
+        border-radius: 12px;
+        color: inherit;
+        background: #303030;
+        font: inherit;
+      }
+    </style>
+  </head>
+  <body data-submit-count="0">
+    <main>
+      <section>
+        <form id="composer-form">
+          <textarea
+            id="prompt-textarea"
+            aria-label="Message ChatGPT"
+          ></textarea>
+          <button data-testid="send-button" type="submit">Send</button>
+        </form>
+        <button id="recreate" type="button">Recreate composer</button>
+        <output id="last-submission"></output>
+      </section>
+    </main>
+    <script>
+      const attachSubmit = (form) => {
+        const composer = form.querySelector(
+          'textarea, [contenteditable="true"]',
+        );
+        let contenteditableState =
+          composer instanceof HTMLTextAreaElement
+            ? null
+            : composer.textContent || "";
+
+        if (!(composer instanceof HTMLTextAreaElement)) {
+          composer.addEventListener("input", (event) => {
+            if (event.isTrusted) {
+              setTimeout(() => {
+                contenteditableState = composer.textContent || "";
+              }, 0);
+            }
+          });
+        }
+
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const text =
+            composer instanceof HTMLTextAreaElement
+              ? composer.value
+              : contenteditableState || "";
+          document.body.dataset.submitCount = String(
+            Number(document.body.dataset.submitCount || "0") + 1,
+          );
+          document.querySelector("#last-submission").textContent = text;
+        });
+      };
+      attachSubmit(document.querySelector("form"));
+      document.querySelector("#recreate").addEventListener("click", () => {
+        const previous = document.querySelector("form");
+        const replacement = document.createElement("form");
+        replacement.id = "composer-form";
+        replacement.innerHTML =
+          '<div role="textbox" contenteditable="true" aria-label="Message ChatGPT"></div><button data-testid="send-button" type="submit">Send</button>';
+        previous.replaceWith(replacement);
+        attachSubmit(replacement);
+      });
+    </script>
+  </body>
+</html>

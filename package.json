@@ -1,0 +1,51 @@
+{
+  "name": "ai-privacy-guard",
+  "description": "Local-first protection against sensitive data leaks in public AI tools",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "overrides": {
+      "adm-zip": "^0.6.0",
+      "brace-expansion": "^5.0.8",
+      "esbuild": "^0.28.1",
+      "shell-quote": "^1.10.0"
+    }
+  },
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "e2e": "pnpm build && playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "zip": "wxt zip",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@wxt-dev/module-react": "^1.1.5",
+    "eslint": "^10.8.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.8.0",
+    "jsdom": "^30.0.0",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^4.1.10",
+    "web-ext": "^10.5.0",
+    "wxt": "^0.21.2"
+  }
+}
