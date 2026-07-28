@@ -16,17 +16,20 @@ spec construye el puente entre los dos.
 
 El trabajo total se descompone en cuatro slices independientes:
 
-| #   | Slice                                          | Estado        |
-| --- | ---------------------------------------------- | ------------- |
-| 1   | Identidad y telemetría                         | **Este spec** |
-| 2   | Publicación y sincronización de políticas      | Futuro        |
-| 3   | Distribución de la extensión por empresa       | Futuro        |
-| 4   | Autenticación completa del dashboard con roles | Futuro        |
+| #   | Slice                                          | Estado                        |
+| --- | ---------------------------------------------- | ----------------------------- |
+| 1   | Identidad y telemetría                         | **Este spec**                 |
+| 2   | Publicación y sincronización de políticas      | Futuro                        |
+| 3   | Distribución de la extensión por empresa       | **Parcialmente en este spec** |
+| 4   | Autenticación completa del dashboard con roles | Futuro                        |
 
 ### Dentro del alcance
 
 - API desplegado en Vercel con Postgres serverless (Neon).
-- Enrolamiento de instalaciones a una empresa mediante código y email.
+- **Descarga desde el dashboard del paquete de cada empresa**, listo para cargar
+  descomprimido en `chrome://extensions`.
+- Enrolamiento de instalaciones a una empresa, con el código provisto por el
+  paquete y el email ingresado por el empleado.
 - Cola de eventos en el background de la extensión, con reintentos.
 - Ingesta de eventos y heartbeats con contadores agregados.
 - Login de super-admin y lectura de datos reales desde el dashboard.
@@ -41,20 +44,24 @@ El trabajo total se descompone en cuatro slices independientes:
   El CRUD existe sólo para que el dashboard tenga una única fuente de verdad.
 - Roles y aislamiento real entre empresas. La sesión sigue siendo la de un
   super-admin único que ve todo.
-- Pipeline de build por empresa. Una sola extensión sirve a todas; la empresa se
-  determina por el código de enrolamiento.
+- Publicación en Chrome Web Store, force-install por política empresarial y
+  actualización automática. La distribución es por carga descomprimida.
+- Lectura del email desde la sesión de Chrome (`identity.email`). El email lo
+  ingresa el empleado.
 - Adapters de proveedores nuevos. Sigue siendo sólo ChatGPT.
 
 ## Criterios de éxito
 
-1. Un empleado instala la extensión, pega el código de su empresa y su email en
-   el popup, y queda enrolado.
-2. Escribe un prompt con una API key en ChatGPT. La extensión lo bloquea.
-3. El evento aparece en el dashboard, dentro de esa empresa y atribuido a ese
+1. El super-admin descarga desde el dashboard el paquete de una empresa, lo
+   descomprime y lo carga en `chrome://extensions` con "Cargar descomprimida".
+2. El empleado abre el popup, que ya reconoce a qué empresa pertenece, ingresa
+   su email y queda enrolado.
+3. Escribe un prompt con una API key en ChatGPT. La extensión lo bloquea.
+4. El evento aparece en el dashboard, dentro de esa empresa y atribuido a ese
    usuario, sin contener el prompt ni el fragmento detectado.
-4. Con el API caído, el envío del usuario funciona igual y el evento se entrega
+5. Con el API caído, el envío del usuario funciona igual y el evento se entrega
    cuando el API vuelve.
-5. Sin enrolar, la extensión protege exactamente como hoy y no emite nada.
+6. Sin enrolar, la extensión protege exactamente como hoy y no emite nada.
 
 ## Arquitectura
 
@@ -81,6 +88,7 @@ de falla posible para un producto cuyo output son los eventos.
 
 | Módulo                                | Responsabilidad                                            |
 | ------------------------------------- | ---------------------------------------------------------- |
+| `src/config/RuntimeConfigRepository`  | Lee y valida el `config.json` inyectado en el paquete      |
 | `src/enrollment/EnrollmentRepository` | Borde persistente: `installationId`, token, empresa, email |
 | `src/enrollment/EnrollmentService`    | Canjea código y email por token contra el API              |
 | `src/telemetry/EventFactory`          | Construye el payload seguro desde el outcome. Función pura |
@@ -92,9 +100,11 @@ de falla posible para un producto cuyo output son los eventos.
 ### Flujo completo
 
 ```text
-Dashboard: el super-admin copia el código de enrolamiento de la empresa
+Dashboard: el super-admin descarga el paquete de la empresa y lo reparte
    ↓
-Popup: el empleado pega código + email → POST /v1/enroll → token opaco en storage.local
+chrome://extensions → "Cargar descomprimida" sobre la carpeta descomprimida
+   ↓
+Popup: el empleado ingresa su email → POST /v1/enroll → token opaco en storage.local
    ↓
 Content script: PrivacyReviewService decide, el usuario resuelve
    ↓ mensaje tipado, fire-and-forget
@@ -135,6 +145,67 @@ permite suplantar instalaciones.
 la extensión. Un reintento tras un timeout donde la escritura sí ocurrió
 reinserta el mismo `id` y el API lo descarta. Sin esto, el backoff duplicaría
 eventos y las métricas serían basura.
+
+## Paquete por empresa
+
+### Generación
+
+La extensión **no se compila por empresa**. Correr `wxt build` dentro de una
+función serverless tardaría decenas de segundos por descarga y excedería los
+límites de ejecución. En su lugar se compila una sola vez, en el deploy, y lo
+único que varía por empresa es un archivo de configuración inyectado al
+descargar.
+
+```text
+Deploy de Vercel
+  └─ wxt build → .output/chrome-mv3/ → zip base incluido en el bundle del deployment
+
+GET /admin/companies/:id/extension/download        requiere sesión de super-admin
+  └─ lee el zip base en memoria
+     inyecta config.json  { apiBaseUrl, companyId, companyName, enrollmentCode }
+     reescribe manifest.json → name: "AI Privacy Guard — <empresa>"
+     responde ai-privacy-guard-<slug>.zip
+```
+
+La operación es de milisegundos, no escribe en disco y no necesita blob storage.
+El endpoint va detrás de la sesión porque el zip contiene el código de
+enrolamiento de la empresa.
+
+### Configuración en runtime, no en build
+
+El `companyId` y el código se inyectan **después** de compilar, así que no pueden
+viajar como variables de build de Vite o WXT. La extensión lee su configuración
+en tiempo de ejecución:
+
+```ts
+fetch(browser.runtime.getURL("config.json"));
+```
+
+`RuntimeConfigRepository` valida ese JSON y aplica defaults seguros: sin config
+válida, la extensión funciona en modo local sin telemetría. Ese es exactamente el
+estado de un build de desarrollo sin inyectar.
+
+El `manifest.json` se mantiene estático salvo el nombre visible, porque el host
+del API es el mismo para todas las empresas. Lo único que cambia por empresa es
+`config.json` y ese nombre.
+
+### Instalación por carga descomprimida
+
+Es el canal de distribución de esta etapa, con limitaciones que se asumen a
+conciencia:
+
+- **No hay actualización automática.** Cada versión nueva obliga a redescargar y
+  recargar a mano en cada máquina.
+- **Chrome advierte en cada arranque** sobre extensiones en modo desarrollador, y
+  puede desactivarlas.
+- **Requiere el modo desarrollador habilitado**, que muchas políticas
+  corporativas bloquean.
+- **El ID de la extensión deriva de la ruta de la carpeta**, así que difiere
+  entre máquinas. No afecta a este diseño porque el CORS de `/v1/*` es abierto y
+  la identidad viaja en el token, no en el ID.
+
+Sirve para pilotear y validar. El canal definitivo sería Chrome Web Store como
+unlisted más force-install por política empresarial, y es parte del slice 3.
 
 ## Modelo de datos
 
@@ -221,6 +292,7 @@ GET    /admin/companies/:id/installations
 GET    /admin/companies/:id/events                filtros y paginación por cursor
 GET    /admin/events                              actividad global
 POST   /admin/companies/:id/enrollment-code/rotate
+GET    /admin/companies/:id/extension/download    zip con config.json inyectado
 GET    /admin/companies/:id/rules
 POST   /admin/companies/:id/rules
 PATCH  /admin/companies/:id/rules/:ruleId
@@ -246,14 +318,25 @@ DELETE /admin/companies/:id/rules/:ruleId
 
 ### Manifest
 
-Suma el permiso `alarms` y el host del API en `host_permissions`. La URL del API
-llega por variable de build (`WXT_API_URL`); no se hardcodea, porque el mismo
-código se compila contra desarrollo y contra producción.
+Suma el permiso `alarms` y el host del API en `host_permissions`. El host es el
+mismo para todas las empresas, así que puede quedar estático; lo que varía por
+empresa vive en `config.json`, no en el manifest.
+
+`web_accessible_resources` no hace falta: `config.json` lo lee la propia
+extensión, no la página.
 
 ### Popup
 
-Gana una pantalla de enrolamiento con código, email, estado de conexión y botón
-de desconectar. Los toggles actuales se conservan.
+Gana una pantalla de enrolamiento con estado de conexión y botón de desconectar.
+Los toggles actuales se conservan.
+
+Tiene dos caminos según lo que traiga `RuntimeConfigRepository`:
+
+- **Con código en el paquete** —el caso de una empresa real— muestra el nombre de
+  la empresa y pide sólo el email.
+- **Sin código** —un build de desarrollo sin inyectar— cae al formulario con
+  código y email. Este camino se mantiene porque es el que se usa mientras se
+  desarrolla.
 
 Antes de enrolar, el popup debe informar de forma prominente que a partir de ese
 momento la empresa verá metadatos de sus intervenciones. Sin ese aviso el
@@ -262,9 +345,9 @@ producto es indefendible frente al empleado.
 ### PrivacyReviewService
 
 Hoy devuelve una decisión y pierde lo que el usuario terminó haciendo. Se le
-inyecta un callback `onOutcome` que emite decisión, acción, resolución final,
-reglas activadas, score y duración. El servicio sigue sin conocer mensajería ni
-APIs de Chrome.
+inyecta un callback `onOutcome` que emite decisión, resolución final, reglas
+activadas, score y duración. El servicio sigue sin conocer mensajería ni APIs de
+Chrome.
 
 Esto además corrige el problema 13 del análisis de arquitectura: los contadores
 actuales registran la decisión inicial, no la resolución real de cada intento.
@@ -306,10 +389,15 @@ telemetría es algo que la empresa agrega, no un requisito para que proteja.
 - Pantalla de login de super-admin.
 - Las secciones existentes ganan estados de carga, error y vacío, que hoy no
   tienen porque asumen datos siempre presentes.
-- La sección Extensión muestra el código real con botón de rotar y la lista de
-  **instalaciones** reales —versión, última conexión, estado— en lugar de
+- La sección Extensión pasa a ser el centro de la distribución: botón
+  **Descargar extensión** que trae el zip de esa empresa, instrucciones de
+  instalación por carga descomprimida, código real con botón de rotar, y la lista
+  de **instalaciones** reales —versión, última conexión, estado— en lugar de
   usuarios inventados. Hay que corregir el texto que hoy afirma que el código es
   de un solo uso.
+- Rotar el código no invalida las instalaciones ya enroladas, que siguen usando
+  su token. Sólo impide enrolar nuevas con el código viejo. El texto de la UI
+  tiene que decirlo, porque la expectativa natural es la contraria.
 - La cobertura se calcula sobre instalaciones que existen.
 - La tabla de eventos muestra la regla principal más un indicador de "+N reglas",
   consecuencia de que el evento sea por envío.
@@ -328,7 +416,7 @@ reales" signifique eso.
 `PRIVACY.md` y `THREAT_MODEL.md` quedan **falsos** apenas exista telemetría.
 Ambos deben reescribirse antes de habilitar la ingesta, cubriendo:
 
-- Qué se envía: identificadores, proveedor, categoría, severidad, acción,
+- Qué se envía: identificadores, proveedor, categoría, severidad, decisión,
   resolución, timestamps y contadores agregados.
 - Qué nunca se envía: prompt, texto detectado, `safePreview`, offsets asociados a
   texto, URL de conversación, contenido redactado.
@@ -343,6 +431,8 @@ Ambos deben reescribirse antes de habilitar la ingesta, cubriendo:
 - `EventFactory`: lista negra de campos y de substrings del texto original.
 - `EventQueueRepository`: límite, orden FIFO, descarte del más viejo, conteo.
 - `EnrollmentRepository`: normalización y defaults seguros.
+- `RuntimeConfigRepository`: config válida, config ausente, config corrupta. Los
+  dos últimos casos deben resolver en modo local sin telemetría.
 - Backoff: progresión, tope y jitter acotado.
 
 **Integración del API**
@@ -351,6 +441,10 @@ Ambos deben reescribirse antes de habilitar la ingesta, cubriendo:
 - Idempotencia: el mismo `id` dos veces produce un solo evento.
 - Token revocado devuelve 401.
 - Validación rechaza payloads malformados sin tumbar el lote entero.
+- Generación del paquete: el zip descargado es un ZIP válido, contiene el
+  `config.json` de esa empresa y no el de otra, y el `manifest.json` sigue siendo
+  JSON parseable después de reescribir el nombre.
+- La descarga sin sesión devuelve 401, porque el zip contiene el código.
 
 **Integración de la extensión**
 
@@ -374,9 +468,15 @@ Ambos deben reescribirse antes de habilitar la ingesta, cubriendo:
 3. Vercel es serverless: no hay estado en proceso, no hay SQLite en disco y no
    hay colas del lado del servidor. Toda la resiliencia de entrega vive en la
    extensión.
-4. El dominio del API queda horneado en el manifest, así que debe fijarse antes
-   de compilar el paquete que instalen las empresas. Cambiarlo después obliga a
-   republicar.
-5. Las métricas de "total analizado" son acumuladas por instalación, no por
+4. El dominio del API queda en `host_permissions` del manifest, así que debe
+   fijarse antes de generar el zip base. Cambiarlo obliga a redistribuir el
+   paquete a todas las empresas.
+5. La distribución por carga descomprimida no tiene actualización automática:
+   cada versión nueva exige redescargar y recargar en cada máquina. Es el límite
+   principal de esta etapa y el que motiva el slice 3.
+6. El zip base se genera en el deploy. Si el build de la extensión falla, el
+   deploy debe fallar; un zip desactualizado silenciosamente sería peor que no
+   tener descarga.
+7. Las métricas de "total analizado" son acumuladas por instalación, no por
    ventana temporal.
-6. La extensión sigue cubriendo sólo ChatGPT.
+8. La extensión sigue cubriendo sólo ChatGPT.
