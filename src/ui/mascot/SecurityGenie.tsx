@@ -28,7 +28,7 @@ export function SecurityGenie({
   const asset = mascotAsset();
   const rootRef = useRef<HTMLElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
-  const { style, onPointerDown, consumeDrag } = useMascotPosition();
+  const { style, placement, onPointerDown, consumeDrag } = useMascotPosition();
   const statusVisible =
     decision === null &&
     (state.kind === "allow" ||
@@ -68,6 +68,8 @@ export function SecurityGenie({
       className="security-genie"
       style={style}
       data-mascot-state={state.kind}
+      data-bubble-y={placement.y}
+      data-bubble-x={placement.x}
       aria-label="AI Privacy Guard"
     >
       {decision === null && state.kind === "scanning" ? (

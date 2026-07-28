@@ -123,6 +123,13 @@ export function useMascotPosition() {
     return dragged;
   }, []);
 
+  // El globo se ancla arriba y a la izquierda del genio; si el genio está en la
+  // mitad de arriba (o de la izquierda) de la pantalla, ahí no entra y se corta.
+  const placement = {
+    y: position !== null && position.y < window.innerHeight / 2 ? "down" : "up",
+    x: position !== null && position.x < window.innerWidth / 2 ? "right" : "left",
+  } as const;
+
   const style: React.CSSProperties = {
     ...(position === null
       ? {}
@@ -130,5 +137,5 @@ export function useMascotPosition() {
     ...(ready ? {} : { visibility: "hidden" }),
   };
 
-  return { style, onPointerDown, consumeDrag };
+  return { style, placement, onPointerDown, consumeDrag };
 }
