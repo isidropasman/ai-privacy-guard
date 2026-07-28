@@ -26,7 +26,7 @@ const stateOptions = [
 export function IncidentGallery() {
   const [selectedCaseIndex, setSelectedCaseIndex] = useState(0);
   const [state, setState] = useState<IncidentStateId>("original");
-  const selectedCase = useCases[selectedCaseIndex];
+  const selectedCase = useCases[selectedCaseIndex] ?? useCases[0];
 
   const selectCase = (index: number) => {
     setSelectedCaseIndex(index);

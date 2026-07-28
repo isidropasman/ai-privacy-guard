@@ -7,7 +7,7 @@ export function Navbar() {
     <header className="nav-wrap">
       <nav className="navbar" aria-label="Navegación principal">
         <a className="brand" href="#main" aria-label="Redacta, ir al inicio">
-          <span className="brand-mark" aria-hidden="true">R</span>
+          <img className="brand-mark" src="/mascot/security-genie.webp" alt="" aria-hidden="true" />
           <span className="brand-console">
             <strong>REDACTA</strong>
             <small>
