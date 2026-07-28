@@ -67,4 +67,16 @@ describe("DetectorEngine", () => {
 
     expect(detect).toHaveBeenCalledTimes(2);
   });
+
+  test("exposes the registered detectors through a public getter", () => {
+    const fixture: SensitiveDataDetector = {
+      id: "fixture",
+      label: "Fixture",
+      detect: () => [],
+    };
+
+    const engine = new DetectorEngine([fixture]);
+
+    expect(engine.detectors).toEqual([fixture]);
+  });
 });
