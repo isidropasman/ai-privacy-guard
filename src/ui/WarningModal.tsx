@@ -67,7 +67,7 @@ export function WarningModal({
       : "El análisis local encontró un error después de detectar contenido crítico. El envío permanece bloqueado."
     : blocked
       ? "Detectamos información que podría permitir acceso o causar una filtración."
-      : "Podés protegerla y seguir usando ChatGPT.";
+      : "Podés protegerla y seguir usando el chat.";
 
   return (
     <div className="modal-layer">
