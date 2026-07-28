@@ -109,7 +109,7 @@ export function PopupApp({ repository }: PopupAppProps) {
         <span className="provider-icon">AI</span>
         <div>
           <p>Proveedor actual</p>
-          <strong>ChatGPT</strong>
+          <strong>ChatGPT, Claude o Gemini</strong>
         </div>
         <span className="protected">Protegido</span>
       </section>

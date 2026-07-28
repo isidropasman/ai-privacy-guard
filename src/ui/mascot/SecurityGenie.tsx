@@ -109,7 +109,8 @@ export function SecurityGenie({
           <span className="genie-bubble__kicker">Security Genie</span>
           <h2 id="security-genie-info-title">¿Por qué estoy acá?</h2>
           <p>
-            Reviso tus mensajes localmente antes de que salgan de ChatGPT.
+            Reviso tus mensajes localmente antes de que salgan de tu chat de
+            IA.
           </p>
           <ul>
             <li>Analizo localmente</li>

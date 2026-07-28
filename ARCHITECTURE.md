@@ -31,11 +31,11 @@ Los motores de detección, política y redacción no importan selectores ni APIs
 
 ## DOM dinámico
 
-`ChatGPTAdapter` prioriza `role="textbox"`, `contenteditable`, `textarea`, ARIA y relación con el formulario de envío. Un único `MutationObserver` observa `main` —o `body` como fallback— sólo para cambios de hijos. La identidad del composer se compara antes de notificar.
+`DomProviderAdapter` prioriza `role="textbox"`, `contenteditable`, `textarea`, ARIA y relación con el formulario de envío. Un único `MutationObserver` observa `main` —o `body` como fallback— sólo para cambios de hijos. La identidad del composer se compara antes de notificar.
 
-## Proveedores futuros
+## Proveedores
 
-`ProviderAdapter` define matching, lectura/escritura del composer, send action, envío aprobado y observación. `ClaudeAdapter` y `GeminiAdapter` deberán implementar esa interfaz y centralizar sus selectores; los motores existentes se reutilizan sin cambios.
+`ProviderAdapter` define matching, lectura/escritura del composer, send action, envío aprobado y observación. `ChatGPTAdapter`, `ClaudeAdapter` y `GeminiAdapter` son configuraciones delgadas (hostnames + selectores) sobre `DomProviderAdapter` (`src/adapters/shared`), que centraliza el comportamiento DOM genérico. `createAdapterForLocation` elige el adapter activo según `location.hostname` al iniciar el content script.
 
 ## Estado
 

@@ -7,11 +7,21 @@ export default defineConfig({
     description: "Usá la IA. No filtres información confidencial.",
     version: "0.1.0",
     permissions: ["storage"],
-    host_permissions: ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+    host_permissions: [
+      "https://chatgpt.com/*",
+      "https://chat.openai.com/*",
+      "https://claude.ai/*",
+      "https://gemini.google.com/*",
+    ],
     web_accessible_resources: [
       {
         resources: ["mascot/*.webp"],
-        matches: ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+        matches: [
+          "https://chatgpt.com/*",
+          "https://chat.openai.com/*",
+          "https://claude.ai/*",
+          "https://gemini.google.com/*",
+        ],
       },
     ],
     action: {
