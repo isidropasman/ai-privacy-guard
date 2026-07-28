@@ -1,13 +1,14 @@
 export const siteCopy = {
   hero: {
     eyebrow: "Simulación educativa · Análisis local",
-    title: "Tu equipo ya usa IA. ¿Sabés qué información está saliendo?",
-    body: "En el flujo compatible, Redacta analiza el texto del prompt antes de que llegue al proveedor público, señala información sensible y permite revisar una versión protegida sin salir del navegador.",
-    indicators: [
-      "Texto del flujo compatible",
-      "Contenido no almacenado por Redacta",
-      "Detección heurística revisable",
-      "Intervención antes del envío",
+    title: "Rick evita que los datos de tu empresa se filtren.",
+    body: "Nos encargamos de que los datos sensibles no salgan de tu computadora y queden en los servidores de terceros, conectando una extensión.",
+    blocked: [
+      { value: "sk-live-4f9a…c2e1", label: "API key" },
+      { value: "postgres://admin:••••@prod", label: "Credenciales" },
+      { value: "DNI 30.412.887", label: "Dato personal" },
+      { value: "Proyección de gastos Q4 2026", label: "Finanzas" },
+      { value: "Salarios del equipo", label: "Confidencial" },
     ],
   },
   flow: {

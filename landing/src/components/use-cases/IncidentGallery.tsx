@@ -1,36 +1,98 @@
-import { useState, type KeyboardEvent } from "react";
+import { useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   useCases,
   type IncidentStateId,
+  type IncidentUseCase,
 } from "../../data/useCases";
+import { IncidentDemo } from "../incident-demo/IncidentDemo";
 import { IncidentScene } from "./IncidentScene";
 
-const stateOptions = [
-  {
-    id: "original",
-    label: "Original",
-  },
-  {
-    id: "findings",
-    label: "Hallazgos",
-  },
-  {
-    id: "protected",
-    label: "Versión protegida",
-  },
-] as const satisfies readonly {
-  readonly id: IncidentStateId;
-  readonly label: string;
-}[];
+type FlowState =
+  | "idle"
+  | "scanning"
+  | "risk-detected"
+  | "redacting"
+  | "protected"
+  | "sent";
+
+const SCAN_DELAY_MS = 700;
+const REDACT_DELAY_MS = 500;
+
+const sceneStateByFlow: Readonly<Record<FlowState, IncidentStateId>> = {
+  idle: "original",
+  scanning: "original",
+  "risk-detected": "findings",
+  redacting: "findings",
+  protected: "protected",
+  sent: "protected",
+};
+
+function guardianMessage(flow: FlowState, incident: IncidentUseCase): string {
+  const critical = incident.findings.filter(
+    (finding) => finding.severity === "critical",
+  ).length;
+
+  switch (flow) {
+    case "idle":
+      return "Esto está por salir tal cual. ¿Lo enviamos?";
+    case "scanning":
+      return "Esperá, lo estoy revisando acá mismo…";
+    case "risk-detected":
+      return critical > 0
+        ? `Frená. Encontré ${incident.findings.length} datos sensibles, ${critical} de ellos crítico${critical === 1 ? "" : "s"}.`
+        : `Encontré ${incident.findings.length} datos sensibles antes de que salgan.`;
+    case "redacting":
+      return "Reemplazando los valores…";
+    case "protected":
+      return "Ya está limpio. Ahora sí podés enviarlo.";
+    case "sent":
+      return "Enviado. Los valores originales nunca salieron de tu navegador.";
+  }
+}
 
 export function IncidentGallery() {
   const [selectedCaseIndex, setSelectedCaseIndex] = useState(0);
-  const [state, setState] = useState<IncidentStateId>("original");
-  const selectedCase = useCases[selectedCaseIndex];
+  const [flow, setFlow] = useState<FlowState>("idle");
+  const timeoutRef = useRef<number | undefined>(undefined);
+  const reduceMotion = useReducedMotion();
+  const selectedCase = useCases[selectedCaseIndex] ?? useCases[0];
+  const critical = selectedCase.findings.some(
+    (finding) => finding.severity === "critical",
+  );
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(timeoutRef.current);
+    },
+    [],
+  );
 
   const selectCase = (index: number) => {
+    window.clearTimeout(timeoutRef.current);
     setSelectedCaseIndex(index);
-    setState("original");
+    setFlow("idle");
+  };
+
+  const scan = () => {
+    setFlow("scanning");
+    timeoutRef.current = window.setTimeout(
+      () => setFlow("risk-detected"),
+      reduceMotion ? 0 : SCAN_DELAY_MS,
+    );
+  };
+
+  const anonymize = () => {
+    setFlow("redacting");
+    timeoutRef.current = window.setTimeout(
+      () => setFlow("protected"),
+      reduceMotion ? 0 : REDACT_DELAY_MS,
+    );
+  };
+
+  const reset = () => {
+    window.clearTimeout(timeoutRef.current);
+    setFlow("idle");
   };
 
   const handleCaseKeyDown = (
@@ -78,8 +140,8 @@ export function IncidentGallery() {
           </h2>
         </div>
         <p>
-          Explorá escenas ficticias y locales. Cada recorrido muestra el
-          original, los hallazgos y la versión que podría enviarse protegida.
+          Elegí una escena ficticia y mandala como la mandarías de verdad.
+          Redacta la revisa en este navegador antes de que salga.
         </p>
       </div>
 
@@ -139,31 +201,96 @@ export function IncidentGallery() {
               <span>ESCENA ACTIVA</span>
               <strong>{selectedCase.label}</strong>
             </div>
-            <div
-              className="incident-gallery__state-selector"
-              role="group"
-              aria-label="Vista del documento"
-            >
-              {stateOptions.map((option, index) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  aria-pressed={state === option.id}
-                  onClick={() => setState(option.id)}
-                >
-                  <span aria-hidden="true">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  {option.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div aria-live="polite">
-            <IncidentScene incident={selectedCase} state={state} />
+            <IncidentScene
+              incident={selectedCase}
+              state={sceneStateByFlow[flow]}
+            />
+          </div>
+
+          <div className={`incident-gallery__guardian is-${flow}`}>
+            <img
+              src="/mascot/rick-idle.webp"
+              alt="Rick, el guardián de Redacta"
+              width="64"
+              height="64"
+            />
+            <p className="incident-gallery__bubble" role="status">
+              {guardianMessage(flow, selectedCase)}
+            </p>
+          </div>
+
+          <div className="incident-gallery__actions">
+            {flow === "idle" && (
+              <button type="button" className="button" onClick={scan}>
+                Enviar
+              </button>
+            )}
+
+            {flow === "scanning" && (
+              <button type="button" className="button" disabled>
+                Analizando…
+              </button>
+            )}
+
+            {flow === "risk-detected" && (
+              <>
+                <button type="button" className="button" onClick={anonymize}>
+                  {critical
+                    ? "Eliminar secretos y continuar"
+                    : "Anonimizar y enviar"}
+                </button>
+                <button
+                  type="button"
+                  className="button button-ghost"
+                  onClick={reset}
+                >
+                  Volver
+                </button>
+              </>
+            )}
+
+            {flow === "redacting" && (
+              <button type="button" className="button" disabled>
+                Anonimizando…
+              </button>
+            )}
+
+            {flow === "protected" && (
+              <button
+                type="button"
+                className="button"
+                onClick={() => setFlow("sent")}
+              >
+                Continuar envío
+              </button>
+            )}
+
+            {flow === "sent" && (
+              <button
+                type="button"
+                className="button button-ghost"
+                onClick={reset}
+              >
+                Probar de nuevo
+              </button>
+            )}
           </div>
         </div>
+      </div>
+
+      <div className="incident-gallery__file-demo">
+        <div className="incident-gallery__file-demo-intro">
+          <p className="eyebrow">Y CUANDO ES UN ARCHIVO ENTERO</p>
+          <h3>Un PDF de 38 páginas, revisado antes de salir.</h3>
+          <p>
+            La misma revisión sobre un documento completo: escaneo página por
+            página, hallazgos, reemplazos y recibo de lo que se protegió.
+          </p>
+        </div>
+        <IncidentDemo />
       </div>
     </section>
   );
