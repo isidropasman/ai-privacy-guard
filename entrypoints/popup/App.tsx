@@ -4,6 +4,10 @@ import {
   SettingsRepository,
   type PrivacyGuardSettings,
 } from "../../src/storage/SettingsRepository";
+import {
+  EnrollmentPanel,
+  useEnrollmentStatus,
+} from "../../src/ui/EnrollmentPanel";
 import "./styles.css";
 
 interface PopupAppProps {
@@ -14,6 +18,7 @@ export function PopupApp({ repository }: PopupAppProps) {
   const [settings, setSettings] = useState<PrivacyGuardSettings>();
   const [term, setTerm] = useState("");
   const [testResult, setTestResult] = useState<string>();
+  const [enrollment, setEnrollment] = useEnrollmentStatus();
 
   useEffect(() => {
     let active = true;
@@ -100,11 +105,19 @@ export function PopupApp({ repository }: PopupAppProps) {
         <span className="status-dot" aria-label="Activa" />
       </header>
 
+      {enrollment === undefined ? null : (
+        <EnrollmentPanel
+          status={enrollment}
+          onStatusChange={setEnrollment}
+          variant="popup"
+        />
+      )}
+
       <section className="provider" aria-label="Proveedor protegido">
         <span className="provider-icon">AI</span>
         <div>
           <p>Proveedor actual</p>
-          <strong>ChatGPT</strong>
+          <strong>ChatGPT, Claude o Gemini</strong>
         </div>
         <span className="protected">Protegido</span>
       </section>
@@ -193,8 +206,10 @@ export function PopupApp({ repository }: PopupAppProps) {
       ) : null}
 
       <p className="privacy-note">
-        El análisis ocurre en este dispositivo. Los prompts no se guardan ni se
-        envían a servidores.
+        El análisis ocurre en este dispositivo y los prompts nunca salen de acá.
+        {enrollment?.connected === true
+          ? " Al estar conectado, tu empresa recibe sólo metadatos: qué regla se activó, cuándo y en qué herramienta."
+          : " No se envía nada a ningún servidor."}
       </p>
     </main>
   );

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { DecisionModalInput, UserDecision } from "../showDecisionModal";
 import { GenieDecisionBubble } from "./GenieDecisionBubble";
 import type { MascotState } from "./mascotState";
+import { useMascotPosition } from "./useMascotPosition";
 
 interface SecurityGenieProps {
   readonly state: MascotState;
@@ -27,6 +28,7 @@ export function SecurityGenie({
   const asset = mascotAsset();
   const rootRef = useRef<HTMLElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
+  const { style, placement, onPointerDown, consumeDrag } = useMascotPosition();
   const statusVisible =
     decision === null &&
     (state.kind === "allow" ||
@@ -64,7 +66,10 @@ export function SecurityGenie({
     <section
       ref={rootRef}
       className="security-genie"
+      style={style}
       data-mascot-state={state.kind}
+      data-bubble-y={placement.y}
+      data-bubble-x={placement.x}
       aria-label="AI Privacy Guard"
     >
       {decision === null && state.kind === "scanning" ? (
@@ -104,7 +109,8 @@ export function SecurityGenie({
           <span className="genie-bubble__kicker">Security Genie</span>
           <h2 id="security-genie-info-title">¿Por qué estoy acá?</h2>
           <p>
-            Reviso tus mensajes localmente antes de que salgan de ChatGPT.
+            Reviso tus mensajes localmente antes de que salgan de tu chat de
+            IA.
           </p>
           <ul>
             <li>Analizo localmente</li>
@@ -128,30 +134,23 @@ export function SecurityGenie({
         aria-hidden="true"
         data-mascot-preload
       />
-      {decision === null ? (
-        <button
-          className="security-genie__trigger"
-          type="button"
-          aria-label="¿Qué hace Security Genie?"
-          aria-expanded={infoOpen}
-          onClick={() => setInfoOpen((open) => !open)}
-          data-mascot-trigger
-        >
-          <span className="security-genie__hover-layer">
-            <span
-              className={`security-genie__sprite security-genie__sprite--${state.kind}`}
-              style={{ backgroundImage: `url("${asset}")` }}
-              role="img"
-              aria-label="Security Genie"
-              data-mascot-sprite
-            />
-            <span className="security-genie__particle" aria-hidden="true" />
-            <span className="security-genie__particle" aria-hidden="true" />
-            <span className="security-genie__particle" aria-hidden="true" />
-          </span>
-        </button>
-      ) : (
-        <div className="security-genie__decision-anchor">
+      <button
+        className="security-genie__trigger"
+        type="button"
+        {...(decision === null
+          ? {
+              "aria-label": "¿Qué hace Security Genie?",
+              "aria-expanded": infoOpen,
+            }
+          : { "aria-hidden": true, tabIndex: -1 })}
+        onPointerDown={onPointerDown}
+        onClick={() => {
+          if (consumeDrag() || decision !== null) return;
+          setInfoOpen((open) => !open);
+        }}
+        data-mascot-trigger
+      >
+        <span className="security-genie__hover-layer">
           <span
             className={`security-genie__sprite security-genie__sprite--${state.kind}`}
             style={{ backgroundImage: `url("${asset}")` }}
@@ -159,8 +158,11 @@ export function SecurityGenie({
             aria-label="Security Genie"
             data-mascot-sprite
           />
-        </div>
-      )}
+          <span className="security-genie__particle" aria-hidden="true" />
+          <span className="security-genie__particle" aria-hidden="true" />
+          <span className="security-genie__particle" aria-hidden="true" />
+        </span>
+      </button>
     </section>
   );
 }

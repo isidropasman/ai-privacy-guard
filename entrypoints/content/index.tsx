@@ -1,6 +1,6 @@
 import { createRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { ChatGPTAdapter } from "../../src/adapters/chatgpt/ChatGPTAdapter";
+import { createAdapterForLocation } from "../../src/adapters/createAdapterForLocation";
 import { initializeProvider } from "../../src/adapters/initializeProvider";
 import {
   SubmissionInterceptor,
@@ -15,9 +15,19 @@ import {
 import styles from "./styles.css?inline";
 
 export default defineContentScript({
-  matches: ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+  matches: [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+  ],
   runAt: "document_idle",
   async main(ctx) {
+    const adapter = createAdapterForLocation(document, window.location);
+    if (adapter === null) {
+      return;
+    }
+
     const genieRef = createRef<SecurityGenieHandle>();
     const ui = await createShadowRootUi<Root>(ctx, {
       name: "ai-privacy-guard",
@@ -36,7 +46,6 @@ export default defineContentScript({
 
     ui.mount();
 
-    const adapter = new ChatGPTAdapter(document);
     const syncComposerState = () => {
       ui.shadowHost.dataset.composer =
         adapter.findComposer() === null ? "waiting" : "ready";
@@ -48,6 +57,16 @@ export default defineContentScript({
       (input) =>
         genieRef.current?.requestDecision(input) ?? Promise.resolve("cancel"),
       (text) => navigator.clipboard.writeText(text),
+      {
+        provider: adapter.id === "chatgpt" ? "ChatGPT" : adapter.id,
+        // Fire-and-forget: la telemetría nunca puede demorar ni romper el
+        // envío del usuario. El background arma el evento y lo encola.
+        onOutcome: (outcome) => {
+          void browser.runtime
+            .sendMessage({ type: "submission-outcome", outcome })
+            .catch(() => undefined);
+        },
+      },
     );
     const eventForReview = (review: SubmissionReview) => {
       if (review.kind === "error") return { kind: "failed" } as const;

@@ -17,6 +17,7 @@ stats.html
 stats-*.json
 .wxt
 .worktrees
+.superpowers
 web-ext.config.ts
 
 # Editor directories and files
@@ -32,3 +33,4 @@ web-ext.config.ts
 .gstack/
 .vercel
 .env*
+.pglite/
