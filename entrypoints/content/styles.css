@@ -43,8 +43,14 @@
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
   pointer-events: auto;
+  user-select: none;
+}
+
+.security-genie__trigger:active {
+  cursor: grabbing;
 }
 
 .security-genie__trigger:focus-visible {

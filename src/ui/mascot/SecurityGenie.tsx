@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { DecisionModalInput, UserDecision } from "../showDecisionModal";
 import { GenieDecisionBubble } from "./GenieDecisionBubble";
 import type { MascotState } from "./mascotState";
+import { useMascotPosition } from "./useMascotPosition";
 
 interface SecurityGenieProps {
   readonly state: MascotState;
@@ -27,6 +28,7 @@ export function SecurityGenie({
   const asset = mascotAsset();
   const rootRef = useRef<HTMLElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
+  const { style, onPointerDown, consumeDrag } = useMascotPosition();
   const statusVisible =
     decision === null &&
     (state.kind === "allow" ||
@@ -64,6 +66,7 @@ export function SecurityGenie({
     <section
       ref={rootRef}
       className="security-genie"
+      style={style}
       data-mascot-state={state.kind}
       aria-label="AI Privacy Guard"
     >
@@ -137,8 +140,9 @@ export function SecurityGenie({
               "aria-expanded": infoOpen,
             }
           : { "aria-hidden": true, tabIndex: -1 })}
+        onPointerDown={onPointerDown}
         onClick={() => {
-          if (decision !== null) return;
+          if (consumeDrag() || decision !== null) return;
           setInfoOpen((open) => !open);
         }}
         data-mascot-trigger
