@@ -327,6 +327,58 @@ progress::-moz-progress-bar {
   padding-block: 96px 110px;
 }
 
+.hero-aside {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(340px, 100%);
+}
+
+.hero-blocked__title {
+  margin: 0;
+  align-self: start;
+  justify-self: start;
+  color: var(--risk);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hero-blocked {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+}
+
+.hero-blocked li {
+  display: flex;
+  padding: 7px 10px;
+  align-items: baseline;
+  gap: 10px;
+  border: 1px solid rgb(255 102 92 / 35%);
+  background: rgb(255 102 92 / 8%);
+  color: var(--risk);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.hero-blocked__value {
+  text-decoration: line-through;
+  text-decoration-color: rgb(255 102 92 / 60%);
+}
+
+.hero-blocked__label {
+  margin-left: auto;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
 /* El asset es de 256x256: sólo se escala en múltiplos enteros para que el
    nearest-neighbor no rompa la grilla del pixel art. */
 .hero-portrait {
@@ -350,18 +402,6 @@ progress::-moz-progress-bar {
   margin: 24px 0 28px;
 }
 
-.window-dots {
-  display: inline-flex;
-  gap: 4px;
-}
-
-.window-dots i {
-  width: 7px;
-  height: 7px;
-  border: 1px solid var(--line);
-}
-
-.local-badge,
 .incident-scene__local-badge {
   padding: 3px 7px;
   color: var(--safe);
@@ -389,44 +429,6 @@ progress::-moz-progress-bar {
 .provider-showcase__heading p {
   color: var(--muted);
   font-size: 14px;
-}
-
-.provider-showcase__frame {
-  margin: 0;
-  border: var(--frame);
-  background: var(--surface);
-  box-shadow: 0 28px 70px rgb(0 0 0 / 35%);
-}
-
-.provider-showcase__window-bar {
-  display: flex;
-  padding: 10px 14px;
-  align-items: center;
-  gap: 12px;
-  border-bottom: var(--frame);
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-}
-
-.provider-showcase__window-bar .local-badge {
-  margin-left: auto;
-}
-
-.provider-showcase__frame img {
-  width: 100%;
-  height: auto;
-  border-bottom: var(--frame);
-  image-rendering: auto;
-}
-
-.provider-showcase__frame figcaption {
-  padding: 10px 14px;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
 }
 
 .provider-showcase__providers {
@@ -881,37 +883,56 @@ progress::-moz-progress-bar {
   letter-spacing: 0.12em;
 }
 
-.incident-gallery__state-selector {
-  display: inline-flex;
-  padding: 3px;
-  gap: 3px;
-  border: var(--frame);
-  background: var(--surface-sunken);
-}
-
-.incident-gallery__state-selector button {
-  display: inline-flex;
-  min-height: 34px;
-  padding: 0 12px;
+.incident-gallery__guardian {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  font-family: var(--sans);
-  font-size: 11px;
 }
 
-.incident-gallery__state-selector button span {
-  font-family: var(--mono);
-  font-size: 9px;
+.incident-gallery__guardian img {
+  image-rendering: pixelated;
 }
 
-.incident-gallery__state-selector button[aria-pressed="true"] {
-  color: var(--text);
+.incident-gallery__bubble {
+  position: relative;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
   background: var(--surface-raised);
-  box-shadow: inset 0 -2px var(--safe);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* speech tail pointing back at Rick */
+.incident-gallery__bubble::before {
+  position: absolute;
+  top: 50%;
+  left: -5px;
+  width: 8px;
+  height: 8px;
+  border-bottom: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  background: var(--surface-raised);
+  content: "";
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.incident-gallery__guardian.is-risk-detected .incident-gallery__bubble {
+  border-color: rgb(255 102 92 / 55%);
+  color: var(--risk);
+}
+
+.incident-gallery__guardian.is-protected .incident-gallery__bubble,
+.incident-gallery__guardian.is-sent .incident-gallery__bubble {
+  border-color: rgb(242 185 92 / 45%);
+  color: var(--safe);
+}
+
+.incident-gallery__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 /* ---------- incident scene ---------- */
@@ -1413,10 +1434,13 @@ progress::-moz-progress-bar {
     grid-template-columns: 1fr;
   }
 
+  .hero-aside {
+    justify-self: center;
+  }
+
   .hero-portrait {
     width: 192px;
     height: 192px;
-    justify-self: center;
   }
 
   .final-cta {
