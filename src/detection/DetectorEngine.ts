@@ -8,7 +8,11 @@ export class DetectorEngine {
   private cachedKey: string | undefined;
   private cachedFindings: readonly DetectionFinding[] = [];
 
-  constructor(private readonly detectors: readonly SensitiveDataDetector[]) {}
+  constructor(private readonly registeredDetectors: readonly SensitiveDataDetector[]) {}
+
+  get detectors(): readonly SensitiveDataDetector[] {
+    return this.registeredDetectors;
+  }
 
   detect(input: DetectionInput): DetectionFinding[] {
     const key = hashInput(input);
@@ -16,7 +20,7 @@ export class DetectorEngine {
       return [...this.cachedFindings];
     }
 
-    const findings = this.detectors
+    const findings = this.registeredDetectors
       .flatMap((detector) => detector.detect(input))
       .sort((left, right) => left.start - right.start || right.end - left.end);
 
