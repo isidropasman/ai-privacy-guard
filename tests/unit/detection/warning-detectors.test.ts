@@ -61,6 +61,69 @@ describe("warning detectors", () => {
     });
   });
 
+  test.each([
+    [
+      "mandale un mensaje a valen calzetta de mail v@acme.com",
+      "valen calzetta",
+    ],
+    ["Mandá un mail a Ana Gómez.", "Ana Gómez"],
+    ["Ayudame a escribile a juan perez", "juan perez"],
+    ["enviarle un mensaje a Maria Jose Diaz", "Maria Jose Diaz"],
+  ])("detects a lowercase or informally introduced name: %s", (text, name) => {
+    const findings = new PersonNameDetector().detect({
+      text,
+      configuredTerms: [],
+    });
+
+    expect(text.slice(findings[0]?.start, findings[0]?.end)).toBe(name);
+  });
+
+  test.each([
+    "contactar a la empresa proveedora",
+    "mandale un mensaje a mi equipo",
+    "escribirle a todos los clientes",
+  ])("does not treat a common noun phrase as a name: %s", (text) => {
+    expect(
+      new PersonNameDetector().detect({ text, configuredTerms: [] }),
+    ).toEqual([]);
+  });
+
+  test.each([
+    ["valen calzetta me debe la factura", "valen calzetta"],
+    ["el contrato lo firma juan perez", "juan perez"],
+    ["Reunión con Ana Gómez el martes", "Ana Gómez"],
+    ["pasame el cbu de martin rodriguez", "martin rodriguez"],
+    ["adjunto el legajo de maria jose diaz", "maria jose diaz"],
+  ])("detects a name with no introducing verb: %s", (text, name) => {
+    const findings = new PersonNameDetector().detect({
+      text,
+      configuredTerms: [],
+    });
+
+    expect(text.slice(findings[0]?.start, findings[0]?.end)).toBe(name);
+  });
+
+  test.each([
+    "vamos a Buenos Aires en marzo",
+    "necesito una base de datos nueva",
+    "el equipo de Mercado Pago respondió",
+    "esas cosas valen mucho en el mercado",
+    "los repuestos valen menos que el service",
+  ])("does not flag a place or company as a name: %s", (text) => {
+    expect(
+      new PersonNameDetector().detect({ text, configuredTerms: [] }),
+    ).toEqual([]);
+  });
+
+  test("reports a contextual name once, without overlapping spans", () => {
+    const findings = new PersonNameDetector().detect({
+      text: "mandale un mensaje a juan perez",
+      configuredTerms: [],
+    });
+
+    expect(findings).toHaveLength(1);
+  });
+
   test("does not warn about an isolated revenue percentage", () => {
     expect(
       new FinancialInformationDetector().detect({
